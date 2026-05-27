@@ -77,7 +77,7 @@ const router=Router()
   )
   
   //Video Route
-  router.route("/user/videoupload").post(
+  router.route("/videoupload").post(
     verifyJWT,
     upload.fields(
       [
@@ -94,7 +94,7 @@ const router=Router()
     videoUploader
   )
 
-  router.route("/user/getvideo").get(
+  router.route("/getvideo").get(
     verifyJWT,
     allVideosDetails
   )

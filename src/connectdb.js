@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 
 const ConnectDB=async()=>{
     try {
-        const connectionInstance=await mongoose.connect(`${process.env.MONGODB_URI}/${process.env.DB_NAME}`)
+        const connectionInstance=await mongoose.connect(`${process.env.MONGODB_URI}/${process.env.DB_NAME}?authSource=admin`)
         console.log(`\n MongoDb connection success ${connectionInstance}`)
         console.log(`\n MongoDb connection success ${connectionInstance.connection.host}`)
         console.log("Server started");

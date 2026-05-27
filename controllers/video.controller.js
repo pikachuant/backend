@@ -1,17 +1,18 @@
 import { Video } from "../models/video.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
-import { uploadOnCloudiNary } from "../utils/cloudinary.js";
+import { uploadOnCloudiNary ,minioClient} from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { User } from "../models/user.model.js";
 import mongoose from "mongoose";
 import { v2 as cloudinary } from "cloudinary";
+import ffmpeg from "fluent-ffmpeg"
+import fs from "fs"
+import { log } from "console";
 
 function getUrlID(url){
   try {
-    const first=url.split("/upload/")[1]
-    const second=first.replace(/^v\d+\//, "");
-    const finalId=second.substring(0,second.lastIndexOf("."))
+    const finalId=url.split("/backend/")[1]
     return finalId
   } catch (error) {
     throw null
@@ -20,9 +21,9 @@ function getUrlID(url){
 
 //Upload Video
 export const videoUploader=asyncHandler(async function(req,res) {
-    const videoFile=req.files?.videoFile?.[0].path
-    const thumbnail=req.files?.thumbnail?.[0].path
-
+    const videoFile=req.files?.videoFile?.[0]
+    const thumbnail=req.files?.thumbnail?.[0]
+  
     const {titile,description}=req.body
 
     const id=req.user?._id
@@ -31,8 +32,22 @@ export const videoUploader=asyncHandler(async function(req,res) {
         throw new ApiError(400,"user is not authenticated to upload video")
     }
 
+    const getVideoMetadata=async function (file) {
+        const metadata=await new Promise((resolve,reject)=>{
+            ffmpeg.ffprobe(file,(err,data)=>{
+                if (err) reject(err)
+                else resolve(data)
+            })
+        })
+        return metadata.format.duration
+    }
+    
+    
+    const duration=await getVideoMetadata(videoFile.path)
     const uploadVideoFile= await uploadOnCloudiNary(videoFile)
     const uploadthumbnail= await uploadOnCloudiNary(thumbnail)
+    console.log(duration);
+    
 
     if(!uploadVideoFile && !uploadthumbnail){
        throw new ApiError(400,"Something happened during upload")
@@ -40,12 +55,12 @@ export const videoUploader=asyncHandler(async function(req,res) {
     
 
     const videoUploadResponse=await Video.create({
-        videoFile:uploadVideoFile.url,
-        thumbnail:uploadthumbnail.url,
+        videoFile:uploadVideoFile,
+        thumbnail:uploadthumbnail,
         owner:id,
         titile,
         description,
-        duration:uploadVideoFile.duration,
+        duration
     })
     
     if (!videoUploadResponse) {
@@ -138,16 +153,14 @@ export const deleteVideo=asyncHandler(async function(req,res) {
 
     const thumbnailID=getUrlID(Response.thumbnail)
     const videoFileID=getUrlID(Response.videoFile)
+    console.log(thumbnailID);
+    console.log(videoFileID);
+    
 
 
     try {
-        const resofVideo=await cloudinary.uploader.destroy(videoFileID, {
-          resource_type: "video"
-        });
-        
-        const resofthumbNail=await cloudinary.uploader.destroy(thumbnailID, {
-           resource_type: "image"
-        });
+        const resofVideo=await minioClient.removeObject( "backend",thumbnailID)
+        const resofthumbNail=await minioClient.removeObject( "backend",videoFileID)
     } catch (error) {
         throw new ApiError(400,"Deleteion failed at cloudinary")
     }

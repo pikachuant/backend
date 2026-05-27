@@ -38,8 +38,8 @@ import mongoose from "mongoose"
     const {username,email,fullName,password}=req.body
       //Destructure the req.body 
 
-      const avatarLocalPath = req.files?.avatar?.[0]?.path;
-      const coverImageLocalPath=req.files?.coverImage?.[0]?.path
+      const avatarLocalPath = req.files?.avatar?.[0]
+      const coverImageLocalPath=req.files?.coverImage?.[0]
 
       //checked file have proper data or not
       if([fullName,email,username,password]
@@ -67,8 +67,8 @@ import mongoose from "mongoose"
 
       if(existedUser){
           await Promise.all([
-             safeUnlink(avatarLocalPath),
-             safeUnlink(coverImageLocalPath)
+             safeUnlink(avatarLocalPath.path),
+             safeUnlink(coverImageLocalPath.path)
 
            ])
          throw new ApiError(409,"User is already regsitered with email or username")
@@ -79,22 +79,22 @@ import mongoose from "mongoose"
     //Due to we are using middleware soo multer can give us extra data by files
     //Due to multiple file we cna use body but due to middleware we can direct access by files
     
-    if(!avatarLocalPath ){
+    if(!avatarLocalPath.path){
         throw new ApiError(400,"Avatar Image must need")
     }
 
-    const avatar=await uploadOnCloudiNary(avatarLocalPath)
-    const coverImage=await uploadOnCloudiNary(coverImageLocalPath)
+    const avatar_url=await uploadOnCloudiNary(avatarLocalPath)
+    const coverImage_url=await uploadOnCloudiNary(coverImageLocalPath)
     
 
-    if(!avatar){
+    if(!avatar_url){
         throw new ApiError(400,"Avatar is Required")
     }
  //Create user
     const user=await User.create({
         fullName,
-        avatar:avatar.url,
-        coverImage:coverImage?.url || "",
+        avatar:avatar_url,
+        coverImage:coverImage_url || "",
         email,
         password,
         username:username.toLowerCase()
