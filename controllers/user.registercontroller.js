@@ -77,7 +77,7 @@ import mongoose from "mongoose"
     //Due to we are using middleware soo multer can give us extra data by files
     //Due to multiple file we cna use body but due to middleware we can direct access by files
     
-    if(!avatarLocalPath.path){
+    if(!avatarLocalPath?.path){
         throw new ApiError(400,"Avatar Image must need")
     }
 
