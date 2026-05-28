@@ -59,9 +59,8 @@ import mongoose from "mongoose"
 
       //For File Removal method when user failed to register safe side is when path is not avail;
        const safeUnlink=async function(path){
-         if(path){
-            await fs.promises.unlink(path)
-         }
+         if(!path) return;
+         await fs.promises.unlink(path)
         }
      //
 
@@ -69,7 +68,6 @@ import mongoose from "mongoose"
           await Promise.all([
              safeUnlink(avatarLocalPath.path),
              safeUnlink(coverImageLocalPath.path)
-
            ])
          throw new ApiError(409,"User is already regsitered with email or username")
         }
