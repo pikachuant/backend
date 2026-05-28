@@ -66,8 +66,8 @@ import mongoose from "mongoose"
 
       if(existedUser){
           await Promise.all([
-             safeUnlink(avatarLocalPath.path),
-             safeUnlink(coverImageLocalPath.path)
+             safeUnlink(avatarLocalPath?.path),
+             safeUnlink(coverImageLocalPath?.path)
            ])
          throw new ApiError(409,"User is already regsitered with email or username")
         }
