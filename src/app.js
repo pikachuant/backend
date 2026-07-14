@@ -27,4 +27,20 @@ import userRouter from "../routes/user.routes.js"
 //routers
 app.use("/v1/api/user",userRouter)
 
+//Error Handler 
+app.use((err, req, res, next) => {
+    return res
+    .status(err.statuscode)
+    .json({
+        success: false,
+        message: err.message
+    });
+});
+
 export {app}
+
+// When app.js runs, Express registers all middleware and routes,
+// creating an internal middleware/route chain (a map).
+// For every incoming request, Express follows that chain,
+// finds the matching route, executes the middleware and controller,
+// and finally sends the appropriate response.

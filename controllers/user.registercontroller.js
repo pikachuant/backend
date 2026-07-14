@@ -396,9 +396,11 @@ import mongoose from "mongoose"
     return res
     .status(200)
     .json(
-      201,
-      user,
-      "Avatar Image Updated Succesfully"
+      new ApiResponse(
+         201,
+         user,
+         "Avatar Image Updated Succesfully"
+      )
     )
 
   })
