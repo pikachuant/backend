@@ -13,3 +13,7 @@ const asyncHandler=(requesthandler)=>{
 }
 
 export {asyncHandler}
+//Basically it's  a wraper which ensure that whenever any issue arrise it will be automatically tell the express to stop further execution
+//it's a error handler system
+//Also Due to i don't have error Print System when "error" object passto express through "next(error)"
+//the express Default Error handler simple Handle the Error and send default message by obtaining "error.message"
