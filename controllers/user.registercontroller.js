@@ -158,7 +158,7 @@ import mongoose from "mongoose"
      //said that it's only editable by server not by front but can be visible in frontend
      const options={
         httpOnly:true,
-        scure: "true"
+        secure: true
      }
 
      return res
@@ -264,7 +264,9 @@ import mongoose from "mongoose"
    
       const options={
            httpOnly:true,
-           secure: "true"
+           //JavaScript can't read the code suppose any malicious js code inject they can't read
+           secure: true
+           //only sent over HTTPS
         }
    
       return res
