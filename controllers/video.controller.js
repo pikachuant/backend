@@ -8,6 +8,7 @@ import mongoose from "mongoose";
 import { v2 as cloudinary } from "cloudinary";
 import ffmpeg from "fluent-ffmpeg"
 import fs from "fs"
+import { title } from "process";
 
 
 function getUrlID(url){
@@ -293,6 +294,34 @@ export const addViews=asyncHandler(async function (req,res) {
             200,
             addedViews,
             "Views Added Successfully"
+        )
+    )
+})
+
+//Find Video By Name
+export const findVideoByName=asyncHandler(async function(req,res) {
+    const query=req.params?.query
+
+    if(!query){
+        throw new ApiError(404,"Please give some input to search")
+    }
+
+    const Response=await Video.find({
+        titile:{
+            $regex:query,
+            $options:"i"
+        },
+        isPublished: true
+    })
+    
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(
+            200,
+            Response,
+            "Video fecthed Succesfully"
         )
     )
 })
