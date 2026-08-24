@@ -8,7 +8,7 @@ import mongoose from "mongoose";
 import { v2 as cloudinary } from "cloudinary";
 import ffmpeg from "fluent-ffmpeg"
 import fs from "fs"
-import { log } from "console";
+
 
 function getUrlID(url){
   try {
@@ -234,6 +234,65 @@ export const editVideo=asyncHandler(async function (req,res) {
         new ApiResponse(
             "200",
             "Edit Successfully Done"
+        )
+    )
+})
+
+//Get random Video for Feeds
+export const getFeedVideos=asyncHandler(async function (req,res) {
+    const videos=await Video.aggregate(
+        [
+            {
+                $match:{
+                    isPublished: true
+                }
+            },
+            {
+                $sample:{
+                    size:10
+                }
+            }
+        ]
+    )
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(
+            200,
+            videos,
+            "Video fecthed Successfully"
+        )
+    )
+})
+
+//Views Count
+export const addViews=asyncHandler(async function (req,res) {
+    const videoId=req.body?._id
+
+    const addedViews=await video.findByIdAndUpdate(
+        videoId,
+        {
+            $inc:{
+                views:1
+            },
+        },
+        {
+            new:true
+        }
+    )
+
+    if(!addedViews){
+        throw new ApiError(404,"Video is not Found || Views Count is not Done")
+    }
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(
+            200,
+            addedViews,
+            "Views Added Successfully"
         )
     )
 })
