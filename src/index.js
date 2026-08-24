@@ -1,10 +1,6 @@
 import "./env.js"
-
-
 import ConnectDB from "./connectdb.js";
 import {app} from "./app.js"
-
-
 
 
 

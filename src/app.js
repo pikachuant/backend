@@ -30,10 +30,10 @@ app.use("/v1/api/user",userRouter)
 //Error Handler 
 app.use((err, req, res, next) => {
     return res
-    .status(err.statuscode)
+    .status(err.statuscode || 500)
     .json({
         success: false,
-        message: err.message
+        message: err.message || "Internal server Error"
     });
 });
 

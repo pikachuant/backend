@@ -44,8 +44,8 @@ const minioClient=new Client({
   endPoint: "localhost",
   port: 9000,
   useSSL: false,
-  accessKey: "satyajit",
-  secretKey: "ramukaka1",
+  accessKey: "satya",
+  secretKey: "Ramukaka@1",
 })
 
 const uploadOnCloudiNary=async function(localFilepath) {
