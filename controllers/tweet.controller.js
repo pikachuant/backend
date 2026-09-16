@@ -131,18 +131,18 @@ export const fetchAllTweets=asyncHandler(async function(req,res) {
 
     const allTweets=await Tweet.find(query)
     .sort({ _id: -1 })
-    .limit(10)
+    .limit(11)
     .lean()
 
     // if(!allTweets){
     //     throw new ApiError(400,"Some Issue arises during tweet fetch")
     // }
     //it will send [] if no tweets are there soo it will be never matched
-
-    console.log(allTweets);
+    const hasMore = allTweets.length > 10;
+    const tweets = allTweets.slice(0, 10);
     
 
-    const Editable=allTweets.map(tweet=>({
+    const Editable=tweets.map(tweet=>({
         ...tweet,
         isEditable:userId && tweet.tweetBy.toString()==userId
     }))
@@ -159,6 +159,7 @@ export const fetchAllTweets=asyncHandler(async function(req,res) {
             200,
             {
                 Editable,
+                hasMore,
                 cursor:nextCursor
             },
             "All tweet Fetched SucessFully"
