@@ -37,6 +37,7 @@
 import {Client} from "minio"
 import { v4 } from "uuid";
 import fs from "fs"
+import { fileTypeFromFile } from 'file-type';
 
 
 
@@ -51,7 +52,8 @@ const minioClient=new Client({
 const uploadOnCloudiNary=async function(localFilepath) {
     try {
         if(!localFilepath) return null;
-
+        
+        const detected=await fileTypeFromFile(localFilepath.path)
         const id = v4()
         const objectName=`${localFilepath.fieldname}/${id}-${localFilepath.originalname}`
         const response=await minioClient.fPutObject(
@@ -59,12 +61,10 @@ const uploadOnCloudiNary=async function(localFilepath) {
             objectName,
             localFilepath.path,
             {
-              "Content-Type": localFilepath.mimetype,
+              "Content-Type": detected,
             }
         )
         const url=`https://antonpklive.online/backend/${objectName}`
-
-        console.log(localFilepath.mimetype)
 
         return url
     } catch (error) {
