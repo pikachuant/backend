@@ -65,7 +65,7 @@ const uploadOnCloudiNary=async function(localFilepath) {
             }
         )
         const url=`https://antonpklive.online/backend/${objectName}`
-
+        console.log(detected)
         return url
     } catch (error) {
         console.log("Upload error on Minio",error);
