@@ -61,7 +61,7 @@ const uploadOnCloudiNary=async function(localFilepath) {
             objectName,
             localFilepath.path,
             {
-              "Content-Type": detected,
+              "Content-Type": detected?.mime ?? localFilepath.mimetype,
             }
         )
         const url=`https://antonpklive.online/backend/${objectName}`
