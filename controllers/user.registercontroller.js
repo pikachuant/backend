@@ -115,7 +115,8 @@ import mongoose from "mongoose"
         httpOnly:true,
         secure: true,
         sameSite: "none",
-    path: "/"
+        path: "/",
+        maxAge: 30 * 24 * 60 * 60 * 1000
      }
 
 
@@ -177,7 +178,8 @@ import mongoose from "mongoose"
         httpOnly:true,
         secure: true,
         sameSite: "none",
-    path: "/"
+        path: "/",
+        maxAge: 30 * 24 * 60 * 60 * 1000
      }
 
      return res
@@ -229,7 +231,8 @@ import mongoose from "mongoose"
         httpOnly:true,
         secure: "true",
         sameSite: "none",
-    path: "/"
+        path: "/",
+        maxAge: 30 * 24 * 60 * 60 * 1000
      }
 
       //Now cookie se bhi hatao
@@ -290,7 +293,8 @@ import mongoose from "mongoose"
            //only sent over HTTPS
 
            sameSite: "none",
-           path: "/"
+           path: "/",
+           maxAge: 30 * 24 * 60 * 60 * 1000
         }
    
       return res
