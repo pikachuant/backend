@@ -229,10 +229,9 @@ import mongoose from "mongoose"
 
       const options={
         httpOnly:true,
-        secure: "true",
+        secure: true,
         sameSite: "none",
         path: "/",
-        maxAge: 30 * 24 * 60 * 60 * 1000
      }
 
       //Now cookie se bhi hatao
