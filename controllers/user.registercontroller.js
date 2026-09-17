@@ -108,11 +108,28 @@ import mongoose from "mongoose"
         throw new ApiError(500,"Something Went wrong while creating user")
     }
 
+    
+   const {accessToken,refreshToken}=await generateAccessAndGenerateRefresh(createdUser)
+
+   const options={
+        httpOnly:true,
+        secure: true,
+        sameSite: "none",
+    path: "/"
+     }
+
+
   //response
    return res
    .status(201)
+   .cookie("accessToken",accessToken,options)
+   .cookie("refreshToken",refreshToken,options)
    .json(
-     new ApiResponse(200,createdUser,"User Created Successfully")
+     new ApiResponse(200,
+      {
+         user:createdUser
+      }
+      ,"User Created and Logged in Successfully")
    )
   })
  
