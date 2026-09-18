@@ -40,9 +40,6 @@ export const editTweet=asyncHandler(async function(req,res) {
     const {content}=req.body
     const {id:tweetId}=req.params  
 
-    console.log(userId,content,tweetId)
-    
-
     if(!userId){
         throw new ApiError(400,"user is not authenticated Do the edit")
     }
