@@ -81,7 +81,7 @@ export const videoUploader=asyncHandler(async function(req,res) {
 })
 
 //Get User all Uploaded Video Details
-export const allVideosDetails=asyncHandler(async function (req,res) {
+export const allUserVideosDetails=asyncHandler(async function (req,res) {
     const id=req.user?._id
 
     if(!id){

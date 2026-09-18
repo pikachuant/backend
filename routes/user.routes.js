@@ -94,9 +94,9 @@ const router=Router()
     videoUploader
   )
 
-  router.route("/getvideo").get(
+  router.route("/getuservideo").get(
     verifyJWT,
-    allVideosDetails
+    allUserVideosDetails
   )
   
   router.route("/removevideo").delete(
