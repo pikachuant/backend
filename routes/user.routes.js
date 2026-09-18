@@ -117,7 +117,7 @@ const router=Router()
     addViews
   )
 
-  router.route("/search/:query").get(
+  router.route("video/search/:query").get(
     findVideoByName
   )
 
