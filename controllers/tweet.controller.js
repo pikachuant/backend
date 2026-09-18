@@ -39,8 +39,6 @@ export const editTweet=asyncHandler(async function(req,res) {
     const userId=req.user?._id
     const {content}=req.body
     const {id:tweetId}=req.params    
-
-    console.log(tweetId);
     
 
     if(!userId){
@@ -146,8 +144,6 @@ export const fetchAllTweets=asyncHandler(async function(req,res) {
         ...tweet,
         isEditable:userId && tweet.tweetBy.toString()==userId
     }))
-
-    console.log(Editable);
     
 
     const nextCursor=Editable.length>0?Editable[Editable.length-1]._id.toString():null
