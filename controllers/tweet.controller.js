@@ -38,7 +38,9 @@ export const createTweet=asyncHandler(async function(req,res) {
 export const editTweet=asyncHandler(async function(req,res) {
     const userId=req.user?._id
     const {content}=req.body
-    const {id:tweetId}=req.params    
+    const {id:tweetId}=req.params  
+
+    console.log(userId,content,tweetId)
     
 
     if(!userId){
