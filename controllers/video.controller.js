@@ -250,7 +250,7 @@ export const getFeedVideos=asyncHandler(async function (req,res) {
             },
             {
                 $sample:{
-                    size:10
+                    size:30
                 }
             }
         ]
