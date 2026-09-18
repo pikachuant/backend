@@ -213,7 +213,7 @@ const router=Router()
     createTweet
   )
 
-  router.route("/user/tweet/:id/edit-tweet").post(
+  router.route("/tweet/:id/edit-tweet").post(
     verifyJWT,
     editTweet
   )
