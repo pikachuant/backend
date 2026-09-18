@@ -301,13 +301,15 @@ export const addViews=asyncHandler(async function (req,res) {
 //Find Video By Name
 export const findVideoByName=asyncHandler(async function(req,res) {
     const query=req.params?.query
-     console.log("PARAM:", req.params);
-    console.log("QUERY:", query);
+
+
 
     if(!query){
         throw new ApiError(404,"Please give some input to search")
     }
-
+     console.log("PARAM:", req.params);
+     console.log("QUERY:", query);
+     
     const Response=await Video.find({
         titile:{
             $regex:query,
