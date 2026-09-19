@@ -165,7 +165,7 @@ const router=Router()
     unLike
   )
 
-  router.route("/user/video/:id/get-alllikes").get(
+  router.route("/user/video/:id/get-alllikes").post(
     optionalVerfiyJwt,
     getLikeForVideo
   )
