@@ -99,85 +99,76 @@ export const unLike=asyncHandler(async function(req,res) {
 })
 
 //Find All Like on Any Video or Tweet
-const findLike=asyncHandler(async function(req,res,targetType) {
-    const {id: targetId}=req.params
-    const userId=req.user?._id
+const findLike = async function(req, targetType) {
 
-    
- if(!mongoose.Types.ObjectId.isValid(targetId)){
-        throw new ApiError(400,"Id is not matching to fetch Any comment")
+    const { id: targetId } = req.params
+    const userId = req.user?._id
+
+    if (!mongoose.Types.ObjectId.isValid(targetId)) {
+        throw new ApiError(400, "Invalid target ID")
     }
 
+    const match = {
+        targetId: new mongoose.Types.ObjectId(targetId),
+        targetType
+    }
 
-    let Liked;
-    if(userId){
-        Liked=await Like.aggregate([
-            {
-              $match:{
-                targetId:new mongoose.Types.ObjectId(targetId),
-                targetType,
-              }   
-            },
-            {
-                $group:{
-                    _id:null,
-                    //means all match document comes to this group
-                    totalLikes:{$sum:1},
-                    likedByuser:{
-                        $sum:{
-                            $cond:[
-                             {$eq:["$likedBy", new mongoose.Types.ObjectId(userId)]},
-                              1,
-                              0
+    const pipeline = [
+        {
+            $match: match
+        },
+        {
+            $group: {
+                _id: null,
+
+                totalLikes: {
+                    $sum: 1
+                },
+
+                likedByUser: userId
+                    ? {
+                        $sum: {
+                            $cond: [
+                                {
+                                    $eq: [
+                                        "$likedBy",
+                                        new mongoose.Types.ObjectId(userId)
+                                    ]
+                                },
+                                1,
+                                0
                             ]
                         }
                     }
-
-                }
+                    : {
+                        $sum: 0
+                    }
             }
-        ])
-    }else{
-        Liked=await Like.aggregate([
-            {
-              $match:{
-                targetId:new mongoose.Types.ObjectId(targetId),
-                targetType,
-              }   
-            },
-            {
-               $count: "totalLikes"
-            }
-        ])
+        }
+    ]
 
+    const liked = await Like.aggregate(pipeline)
+
+    return {
+        totalLikes: liked[0]?.totalLikes || 0,
+        isLiked: (liked[0]?.likedByUser || 0) > 0
     }
-    if(!Liked){
-        throw new ApiError(400,"liked Not found")
-    }
-
-    
-    const totalLikes=Liked[0]?.totalLikes || 0
-    const isliked=Liked[0]?.likedByuser || 0
-
-    return res
-    .status(200)
-    .json(
-        new ApiResponse(
-            200,
-            {
-               totalLikes,
-               isliked
-            },
-            "fteched successfully"
-
-        )
-    )
-
-
-})
+}
 
 //Get Likes For Video
-export const getLikeForVideo=asyncHandler(async function(req,res) {
-    await findLike(req,res,"Video")
+export const getLikeForVideo = asyncHandler(async function(req, res) {
+
+    const data = await findLike(req, "Video")
+
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                data,
+                "Fetched successfully"
+            )
+        )
 })
 
 //Get Likes For Tweet
