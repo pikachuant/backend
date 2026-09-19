@@ -271,7 +271,7 @@ export const getFeedVideos=asyncHandler(async function (req,res) {
 export const addViews=asyncHandler(async function (req,res) {
     const videoId=req.body?._id
 
-    const addedViews=await video.findByIdAndUpdate(
+    const addedViews=await Video.findByIdAndUpdate(
         videoId,
         {
             $inc:{
