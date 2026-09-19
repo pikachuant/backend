@@ -103,6 +103,12 @@ const findLike=asyncHandler(async function(req,res,targetType) {
     const {id: targetId}=req.params
     const userId=req.user?._id
 
+    
+ if(!mongoose.Types.ObjectId.isValid(targetId)){
+        throw new ApiError(400,"Id is not matching to fetch Any comment")
+    }
+
+
     let Liked;
     if(userId){
         Liked=await Like.aggregate([
@@ -143,6 +149,9 @@ const findLike=asyncHandler(async function(req,res,targetType) {
             }
         ])
 
+    }
+    if(!Liked){
+        throw new ApiError(400,"liked Not found")
     }
 
     
