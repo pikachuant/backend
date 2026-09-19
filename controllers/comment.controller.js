@@ -193,11 +193,11 @@ const findoutComment=asyncHandler(async function(req,res,targetType) {
 })
 
 //Find Comment For Video with the help of upper fucntion
-export const findCommentForVideo=asyncHandler(async function (req,res,targetType) {
+export const findCommentForVideo=asyncHandler(async function (req,res) {
     await findoutComment(req,res,"Video")
 })
 
 //Find Comment For Tweet with the help of upper fucntion
-export const findCommentForTweet=asyncHandler(async function (req,res,targetType) {
+export const findCommentForTweet=asyncHandler(async function (req,res) {
     await findoutComment(req,res,"Tweet")
 })
