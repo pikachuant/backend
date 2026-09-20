@@ -83,7 +83,7 @@ export const updateComment=asyncHandler(async function(req,res) {
         {
             comment
         },
-        { returnDocument: 'after', runValidators: true }
+        { returnDocument: "after", runValidators: true }
     )
 
     if(!response){
