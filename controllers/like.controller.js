@@ -99,7 +99,7 @@ export const unLike=asyncHandler(async function(req,res) {
 })
 
 //Find All Like on Any Video or Tweet
-const findLike=asyncHandler(async function(req,res,targetType) {
+const findLike=async function(req,res,targetType) {
     const {id: targetId}=req.params
     const userId=req.user?._id
 
@@ -173,7 +173,7 @@ const findLike=asyncHandler(async function(req,res,targetType) {
     )
 
 
-})
+}
 
 //Get Likes For Video
 export const getLikeForVideo=asyncHandler(async function(req,res) {

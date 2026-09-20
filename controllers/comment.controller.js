@@ -83,7 +83,7 @@ export const updateComment=asyncHandler(async function(req,res) {
         {
             comment
         },
-        { new: true, runValidators: true }
+        { returnDocument: 'after', runValidators: true }
     )
 
     if(!response){
@@ -137,7 +137,7 @@ export const deleteComment=asyncHandler(async function (req,res) {
 })
 
 //Function for Fetch Comment on Pagination of limit 10
-const findoutComment=asyncHandler(async function(req,res,targetType) {
+const findoutComment=async function(req,res,targetType) {
     const {targetId}=req.params
     const {cursor}=req.query
     //send the last comment createdAt time soo from the basis of last comment date
@@ -190,7 +190,7 @@ const findoutComment=asyncHandler(async function(req,res,targetType) {
         )
     )
 
-})
+}
 
 //Find Comment For Video with the help of upper fucntion
 export const findCommentForVideo=asyncHandler(async function (req,res) {
