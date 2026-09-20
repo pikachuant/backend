@@ -66,7 +66,6 @@ export const updateComment=asyncHandler(async function(req,res) {
         throw new ApiError(400,"Comment not Found to Edit")
     }
 
-    console.log(existingComment);
     
 
     if(existingComment.owner.toString()!==userId.toString()){
