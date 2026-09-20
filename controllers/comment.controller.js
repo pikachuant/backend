@@ -160,7 +160,7 @@ const findoutComment=async function(req,res,targetType) {
         //less than id because new id > old id
     }
 
-    const comments=await Comment.find(query)
+    const Allcomment=await Comment.find(query)
     .sort({_id: -1 })
     //will sort greater first small last soo newest comment first oldest last
     .limit(Limit)
@@ -168,8 +168,8 @@ const findoutComment=async function(req,res,targetType) {
     if(!comments){
         throw new ApiError(400,"Comemnt not Found")
     }
-    const hasMore=comments.length>10;
-    const comments=comments.slice(0,10)
+    const hasMore=Allcomment.length>10;
+    const comments=Allcomment.slice(0,10)
 
     let commentEditable=comments.map((comment)=>{
        let obj=comment.toObject()
