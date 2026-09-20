@@ -143,7 +143,7 @@ const findoutComment=async function(req,res,targetType) {
     //send the last comment createdAt time soo from the basis of last comment date
     const userId=req.user?._id
     
-    let Limit=10
+    let Limit=11
     //After "?" we can send any query
     
     if(!mongoose.Types.ObjectId.isValid(targetId)){
@@ -168,6 +168,8 @@ const findoutComment=async function(req,res,targetType) {
     if(!comments){
         throw new ApiError(400,"Comemnt not Found")
     }
+    const hasMore=comments.length>10;
+    const comments=comments.slice(0,10)
 
     let commentEditable=comments.map((comment)=>{
        let obj=comment.toObject()
@@ -184,7 +186,8 @@ const findoutComment=async function(req,res,targetType) {
             200,
             {
                 comments:commentEditable,
-                nextCursor
+                nextCursor,
+                hasMore
             },
             "Fetched Succesfully"
         )
