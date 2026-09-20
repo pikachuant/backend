@@ -165,7 +165,7 @@ const findoutComment=async function(req,res,targetType) {
     //will sort greater first small last soo newest comment first oldest last
     .limit(Limit)
 
-    if(!comments){
+    if(!Allcomment){
         throw new ApiError(400,"Comemnt not Found")
     }
     const hasMore=Allcomment.length>10;
