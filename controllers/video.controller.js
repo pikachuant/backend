@@ -359,12 +359,32 @@ export const findVideoByName=asyncHandler(async function(req,res) {
 
 export const getvideoById=asyncHandler(async function(req,res){
     const videoId=req.params?.id
+    const id=req.user?._id
 
     if(!videoId){
         throw new ApiError(400,"Please provide a videoId to fetch the video")
     }
     const getVideoDeatils=async function(videoId){
-        const data=await Video.aggre
+        const data=await Video.aggregate([
+            {
+                $match:{
+                    _id:new mongoose.Types.ObjectId(videoId)
+                }
+            },
+            {
+                $lookup:{
+                    from:"users",
+                    localField:"owner",
+                    foreignField:"_id",
+                    as:"owner"    
+                }    
+
+            },
+            {
+                $unwind:"$owner"
+            },
+            
+        ])
     }
 
 
