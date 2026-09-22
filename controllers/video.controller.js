@@ -7,8 +7,7 @@ import { User } from "../models/user.model.js";
 import mongoose from "mongoose";
 import { v2 as cloudinary } from "cloudinary";
 import ffmpeg from "fluent-ffmpeg";
-import fs from "fs";
-import { title } from "process";
+
 
 function getUrlID(url) {
   try {
@@ -47,7 +46,7 @@ export const videoUploader = asyncHandler(async function (req, res) {
   const uploadthumbnail = await uploadOnCloudiNary(thumbnail);
   console.log(duration);
 
-  if (!uploadVideoFile && !uploadthumbnail) {
+  if (!uploadVideoFile || !uploadthumbnail) {
     throw new ApiError(400, "Something happened during upload");
   }
 
@@ -321,6 +320,15 @@ export const getvideoById = asyncHandler(async function (req, res) {
         from: "users",
         localField: "owner",
         foreignField: "_id",
+        pipeline:[
+            {
+                $project:{
+                 _id: 1,
+                 username: 1,
+                 avatar: 1
+                }
+            }
+        ],
         as: "owner",
       },
     },
@@ -330,11 +338,14 @@ export const getvideoById = asyncHandler(async function (req, res) {
     {
       $lookup: {
         from: "subscriptions",
+        let:{
+            ownerId:"$owner._id"
+        },
         pipeline: [
           {
             $match: {
               $expr: {
-                $eq: ["$channel", "$owner._id"],
+                $eq: ["$channel", "$$ownerId"],
               },
             },
           },
@@ -365,7 +376,7 @@ export const getvideoById = asyncHandler(async function (req, res) {
   }
   const response = await Video.aggregate(pipeline);
 
-  if (!response) {
+  if (!response.length) {
     throw new ApiError(404, "Video Not Found or Some issue happened");
   }
 
