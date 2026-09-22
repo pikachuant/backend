@@ -365,7 +365,7 @@ export const getvideoById=asyncHandler(async function(req,res){
         throw new ApiError(400,"Please provide a videoId to fetch the video")
     }
     const getVideoDeatils=async function(videoId){
-        const data=await Video.aggregate([
+        const pipeline=[
             {
                 $match:{
                     _id:new mongoose.Types.ObjectId(videoId)
@@ -382,9 +382,9 @@ export const getvideoById=asyncHandler(async function(req,res){
             },
             {
                 $unwind:"$owner"
-            },
-            
-        ])
+            }
+        ]
+        
     }
 
 
