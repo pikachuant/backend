@@ -304,7 +304,7 @@ export const findVideoByName = asyncHandler(async function (req, res) {
 });
 
 export const getvideoById = asyncHandler(async function (req, res) {
-  const videoId = req.params?.id;
+  const videoId = req.params?.videoId;
   const id = req.user?._id;
 
   if (!videoId) {
