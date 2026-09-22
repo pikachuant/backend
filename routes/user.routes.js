@@ -2,7 +2,7 @@ import { Router } from "express";
 import { assignAccessToken, getCurrentUser, getWatchHistory, loginUser, logoutUser, registerUser, subsciprtionDetails, updateAccountDetails, updateAvatarImage, updateCoverImage, updatePassword } from "../controllers/user.registercontroller.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import { verifyJWT } from "../middlewares/jwt.middleware.js";
-import { addViews, allUserVideosDetails, deleteVideo, editVideo, findVideoByName, getFeedVideos, videoUploader } from "../controllers/video.controller.js";
+import { addViews, allUserVideosDetails, deleteVideo, editVideo, findVideoByName, getFeedVideos, getvideoById, videoUploader } from "../controllers/video.controller.js";
 import { doLike, getLikeForComment, getLikeForTweet, getLikeForVideo, unLike } from "../controllers/like.controller.js";
 import {optionalVerfiyJwt} from "../middlewares/optional.middleware.js"
 import {deleteComment, doComment, findCommentForTweet, findCommentForVideo, updateComment} from "../controllers/comment.controller.js"
@@ -119,6 +119,11 @@ const router=Router()
 
   router.route("/video/search/:query").get(
     findVideoByName
+  )
+
+  router.route("/video/:videoId").get(
+    optionalVerfiyJwt,
+    getvideoById
   )
 
   //PlayList Controller
