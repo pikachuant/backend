@@ -226,7 +226,7 @@ export const getFeedVideos = asyncHandler(async function (req, res) {
     },
     {
       $lookup: {
-        from: "user",
+        from: "users",
         localField: "owner",
         foreignField: "_id",
         as: "owner",
@@ -244,12 +244,9 @@ export const getFeedVideos = asyncHandler(async function (req, res) {
         duration: 1,
         views: 1,
         isPublished: 1,
-        owner: {
-          _id: 1,
-          fullName: 1,
-          username: 1,
-          avatar: 1,
-        },
+        "owner._id": 1,
+        "owner.username": 1,
+        "owner.avatar": 1
       },
     },
   ]);
