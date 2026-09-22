@@ -252,6 +252,34 @@ export const getFeedVideos=asyncHandler(async function (req,res) {
                 $sample:{
                     size:30
                 }
+            },
+            {
+                $lookup:{
+                    from:"user",
+                    localField:"owner",
+                    foreignField:"_id",
+                    as:"owner"
+                }
+            },
+            {
+                $unwind:"$owner"
+            },
+            {
+                $project:{
+                    _id:1,
+                    titile:1,
+                    description:1,
+                    thumbnail:1,
+                    duration:1,
+                    views:1,
+                    isPublished:1,
+                    owner:{
+                        _id:1,
+                        fullName:1,
+                        username:1,
+                        avatar:1
+                    }
+                }
             }
         ]
     )
@@ -327,6 +355,19 @@ export const findVideoByName=asyncHandler(async function(req,res) {
             "Video fecthed Succesfully"
         )
     )
+})
+
+export const getvideoById=asyncHandler(async function(req,res){
+    const videoId=req.params?.id
+
+    if(!videoId){
+        throw new ApiError(400,"Please provide a videoId to fetch the video")
+    }
+    const getVideoDeatils=async function(videoId){
+        const data=await Video.aggre
+    }
+
+
 })
 
 
