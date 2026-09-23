@@ -6,7 +6,8 @@ import { ApiResponse } from "../utils/ApiResponse.js"
 import fs from "fs"
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose"
-import { subscribe } from "diagnostics_channel"
+import { Subscription } from "../models/subscription.model.js"
+
  
   //Generate Access And Generate Refresh-Token
   const generateAccessAndGenerateRefresh=async function (user) {
