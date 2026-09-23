@@ -306,7 +306,9 @@ export const findVideoByName = asyncHandler(async function (req, res) {
 export const getvideoById = asyncHandler(async function (req, res) {
   const videoId = req.params?.videoId;
   const id = req.user?._id;
-  console.log(id,videoId)
+  console.log("Video-Id",videoId)
+  console.log("user-id",id);
+  
 
   if (!videoId) {
     throw new ApiError(400, "Please provide a videoId to fetch the video");
