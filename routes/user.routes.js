@@ -132,7 +132,7 @@ const router=Router()
   )
 
   router.route("/video/:videoId").get(
-    optionalVerfiyJwt,
+    verifyJWT,
     getvideoById
   )
 
