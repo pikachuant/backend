@@ -6,6 +6,7 @@ import { ApiResponse } from "../utils/ApiResponse.js"
 import fs from "fs"
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose"
+import { subscribe } from "diagnostics_channel"
  
   //Generate Access And Generate Refresh-Token
   const generateAccessAndGenerateRefresh=async function (user) {
@@ -633,5 +634,80 @@ import mongoose from "mongoose"
 
  })
 
+ const doSubscribe=asyncHandler(async function(req,res) {
+   const id=req.user?._id
+   const channel=req.params?.channel
 
-export {getWatchHistory,subsciprtionDetails,getCurrentUser,registerUser,loginUser,logoutUser,assignAccessToken,updateAccountDetails,updatePassword,updateAvatarImage,updateCoverImage}
+   if(!id){
+      throw new ApiError(404,"User is not authicate to do Subscribe")
+   }
+
+   if(!channel){
+      throw new ApiError(404,"Channel Id is not There to Subscribe")
+   }
+
+
+   try {
+      const subscribed=await Subscription.create({
+         subscriber:id,
+         channel
+      })
+   
+      if(!subscribed){
+         throw new ApiError(500,"Something went wrong Please try again")
+      }
+   
+      return res
+      .status(200)
+      .json(
+         new ApiResponse(
+            200,
+            subscribed,
+            "Subscribed Successfuly"
+         )
+      )
+   } catch (error) {
+       if (error.code === 11000) {
+            throw new ApiError(
+                409,
+                "You are already subscribed to this channel"
+            );
+        }
+
+        throw error;
+    }
+})
+
+const doUnSubscribe=asyncHandler(async function(req,res) {
+   const id=req.user?._id
+   const channel=req.params?.channel
+
+   if(!id){
+      throw new ApiError(400,"User is not Authenticate to Do the task")
+   }
+
+   if(!channel){
+      throw new ApiError(404,"Please select a channel to Unsubscribe")
+   }
+
+   const unSubscribed=await Subscription.findOneAndDelete({
+      subscriber:id,
+      channel
+   })
+
+   if(!unSubscribed){
+      throw new ApiError(400,"You are not subscribed to this Channel")
+   }
+
+   return res
+      .status(200)
+      .json(new ApiResponse(
+         200,
+         unSubscribed,
+         "Unsubscribed is Done"
+      ))
+   
+})
+
+
+export {getWatchHistory,subsciprtionDetails,getCurrentUser,registerUser,loginUser,logoutUser,assignAccessToken,updateAccountDetails,updatePassword,updateAvatarImage,updateCoverImage,doSubscribe,doUnSubscribe}
