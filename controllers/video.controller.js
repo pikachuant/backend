@@ -362,11 +362,6 @@ export const getvideoById = asyncHandler(async function (req, res) {
         }
       }
     },
-    {
-        $project: {
-            subscribers: 0
-        }
-    }
   ];
 
  if (id) {
@@ -381,6 +376,11 @@ export const getvideoById = asyncHandler(async function (req, res) {
         }
     });
   }
+  pipeline.push({
+    $project: {
+        subscribers: 0
+    }
+  });
   const response = await Video.aggregate(pipeline);
 
   if (!response.length) {
