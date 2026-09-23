@@ -305,9 +305,7 @@ export const findVideoByName = asyncHandler(async function (req, res) {
 
 export const getvideoById = asyncHandler(async function (req, res) {
   const videoId = req.params?.videoId;
-  const id = req.user?._id;
-  console.log("user-id",id);
-  
+  const id = req.user?._id;  
 
   if (!videoId) {
     throw new ApiError(400, "Please provide a videoId to fetch the video");
@@ -363,6 +361,11 @@ export const getvideoById = asyncHandler(async function (req, res) {
           $size: "$subscribers",
         }
       }
+    },
+    {
+        $project: {
+            subscribers: 0
+        }
     }
   ];
 
