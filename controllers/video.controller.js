@@ -7,6 +7,7 @@ import { User } from "../models/user.model.js";
 import mongoose from "mongoose";
 import { v2 as cloudinary } from "cloudinary";
 import ffmpeg from "fluent-ffmpeg";
+import {Subscription} from "../models/subscription.model.js"
 
 
 function getUrlID(url) {
