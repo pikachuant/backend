@@ -43,7 +43,7 @@ export const doComment=asyncHandler(async function(req,res) {
 
     if(parentId){
         const response=await Comment.findByIdAndUpdate(
-            parrentId,
+            parentId,
             {
                 $inc:{totalReplies:1}
             }
