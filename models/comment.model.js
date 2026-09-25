@@ -7,12 +7,10 @@ const commentSchema=new Schema({
     },
     targetId:{
         type:mongoose.Schema.Types.ObjectId,
-        refPath:"targetType",
-        required:true
+        refPath:"targetType"
     },
     targetType:{
         type:String,
-        required:true,
         enum:["Video","Tweet"]
     },
     owner:{

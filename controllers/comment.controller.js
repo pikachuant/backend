@@ -16,19 +16,25 @@ export const doComment=asyncHandler(async function(req,res) {
     
     parentId = parentId || null
 
-    console.log("parentId",parentId)
+    if(!comment){
+        throw new ApiError(400,"user must need to Provide Comment to Do Comment")
+    }
 
-    if(!comment || !targetId || !targetType){
-        throw new ApiError(400,"user must need to Provide ALL Stuff to get comment")
+
+    if(parentId && !mongoose.Types.ObjectId.isValid(parentId)) {
+        throw new ApiError(400,"Please pass a Valid parrentId")
+    }
+
+    if(!parentId){
+        if(!targetId || !targetType){
+            throw new ApiError(400,"Please Provide targetId and targetType to Do Comment")
+        }
     }
 
     if(!mongoose.Types.ObjectId.isValid(targetId)){
         throw new ApiError(400,"Please pass a Valid targetId")
     }
 
-    if(parentId && !mongoose.Types.ObjectId.isValid(parentId)) {
-        throw new ApiError(400,"Please pass a Valid parrentId")
-    }
 
 
     const response=await Comment.create(
@@ -228,7 +234,7 @@ const findoutComment=async function(req,res,targetType) {
 
 }
 
-const findoutCommentReply=async function(req,res,targetType){
+const findoutCommentReply=async function(req,res){
     const {parrentId,cursor}=req.body
     const userId=req.user?._id
     const limit=11
@@ -326,9 +332,9 @@ export const findCommentForTweet=asyncHandler(async function (req,res) {
 })
 
 export const findCommentReplyForVideo=asyncHandler(async function(req,res) {
-    await findoutCommentReply(req,res,"Video")
+    await findoutCommentReply(req,res)
 })
 
 export const findCommentReplyForTweet=asyncHandler(async function(req,res) {
-    await findoutCommentReply(req,res,"Tweet")
+    await findoutCommentReply(req,res)
 })  
