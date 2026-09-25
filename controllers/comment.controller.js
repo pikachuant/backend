@@ -16,6 +16,8 @@ export const doComment=asyncHandler(async function(req,res) {
     
     parentId = parentId || null
 
+    console.log("parentId",parentId)
+
     if(!comment || !targetId || !targetType){
         throw new ApiError(400,"user must need to Provide ALL Stuff to get comment")
     }
