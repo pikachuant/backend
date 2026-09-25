@@ -29,13 +29,12 @@ export const doComment=asyncHandler(async function(req,res) {
         if(!targetId || !targetType){
             throw new ApiError(400,"Please Provide targetId and targetType to Do Comment")
         }
+        if(!mongoose.Types.ObjectId.isValid(targetId)){
+          throw new ApiError(400,"Please pass a Valid targetId")
+        }
     }
 
-    if(!mongoose.Types.ObjectId.isValid(targetId)){
-        throw new ApiError(400,"Please pass a Valid targetId")
-    }
-
-
+    
 
     const response=await Comment.create(
         {
