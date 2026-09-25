@@ -12,9 +12,9 @@ export const doComment=asyncHandler(async function(req,res) {
         throw new ApiError(401,"User is not authenticated")
     }
 
-    let {comment,targetId,targetType,parrentId}=req.body
+    let {comment,targetId,targetType,parentId}=req.body
     
-    parrentId = parrentId ?? null
+    parentId = parentId ?? null
 
     if(!comment || !targetId || !targetType){
         throw new ApiError(400,"user must need to Provide ALL Stuff to get comment")
@@ -24,7 +24,7 @@ export const doComment=asyncHandler(async function(req,res) {
         throw new ApiError(400,"Please pass a Valid targetId")
     }
 
-    if(parrentId && !mongoose.Types.ObjectId.isValid(parrentId)) {
+    if(parentId && !mongoose.Types.ObjectId.isValid(parentId)) {
         throw new ApiError(400,"Please pass a Valid parrentId")
     }
 
@@ -35,11 +35,11 @@ export const doComment=asyncHandler(async function(req,res) {
             owner:userId,
             targetId,
             targetType,
-            parrentId
+            parentId
         }
     )
 
-    if(parrentId){
+    if(parentId){
         const response=await Comment.findByIdAndUpdate(
             parrentId,
             {
