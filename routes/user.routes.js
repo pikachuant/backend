@@ -5,7 +5,7 @@ import { verifyJWT } from "../middlewares/jwt.middleware.js";
 import { addViews, allUserVideosDetails, deleteVideo, editVideo, findVideoByName, getFeedVideos, getvideoById, videoUploader } from "../controllers/video.controller.js";
 import { doLike, getLikeForComment, getLikeForTweet, getLikeForVideo, unLike } from "../controllers/like.controller.js";
 import {optionalVerfiyJwt} from "../middlewares/optional.middleware.js"
-import {deleteComment, doComment, findCommentForTweet, findCommentForVideo, updateComment} from "../controllers/comment.controller.js"
+import {deleteComment, doComment, findCommentForTweet, findCommentForVideo, findCommentReplyForTweet, findCommentReplyForVideo, updateComment} from "../controllers/comment.controller.js"
 import {createTweet, deleteTweet, editTweet, fetchAllTweets} from "../controllers/tweet.controller.js"
 import {addnewItemtoPlayList, createPlayList, findPlayList, removeItemFromPlaylist, removePlaylist} from "../controllers/playlist.controller.js"
 
@@ -220,6 +220,16 @@ const router=Router()
   router.route("/user/tweet/comment/:targetId").get(
     optionalVerfiyJwt,
     findCommentForTweet
+  )
+
+  router.route("/yotube/comment/reply").get(
+    optionalVerfiyJwt,
+    findCommentReplyForVideo
+  )
+
+   router.route("/tweet/comment/reply").get(
+    optionalVerfiyJwt,
+    findCommentReplyForTweet
   )
 
   //Tweets Routes

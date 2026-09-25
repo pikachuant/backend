@@ -24,6 +24,9 @@ const commentSchema=new Schema({
         type:mongoose.Schema.Types.ObjectId,
         ref:"Comment",
         default: null
+    },
+    totalReplies:{
+        type:Number,
     }
 },{timestamps:true})
 

@@ -24,6 +24,11 @@ export const doComment=asyncHandler(async function(req,res) {
         throw new ApiError(400,"Please pass a Valid targetId")
     }
 
+    if(parrentId && !mongoose.Types.ObjectId.isValid(parrentId)) {
+        throw new ApiError(400,"Please pass a Valid parrentId")
+    }
+
+
     const response=await Comment.create(
         {
             comment,
@@ -33,6 +38,19 @@ export const doComment=asyncHandler(async function(req,res) {
             parrentId
         }
     )
+
+    if(parrentId){
+        const response=await Comment.findByIdAndUpdate(
+            parrentId,
+            {
+                $inc:{totalReplies:1}
+            }
+        )
+        if(!response){
+            throw new ApiError(500,"Something went wrong during updating the totalReplies")
+        }
+    }
+
 
     if(!response){
         throw new ApiError(500,"Somethig went wrong during posting the comment")
@@ -69,8 +87,6 @@ export const updateComment=asyncHandler(async function(req,res) {
         throw new ApiError(400,"Comment not Found to Edit")
     }
 
-
-    
 
     if(existingComment.owner.toString()!==userId.toString()){
         throw new ApiError(400,"You are not authenticated to do the Update")
@@ -126,6 +142,18 @@ export const deleteComment=asyncHandler(async function (req,res) {
 
     if(!response){
         throw new ApiError(400,"Not authorized or comment not found")
+    }
+
+    if(response.parentId){
+        const updateParent=await Comment.findByIdAndUpdate(
+            response.parentId,
+            {
+                $inc:{totalReplies:-1}                  
+            }
+        )
+        if(!updateParent){
+            throw new ApiError(500,"Something went wrong during updating the totalReplies")
+        }
     }
 
     return res
@@ -198,6 +226,93 @@ const findoutComment=async function(req,res,targetType) {
 
 }
 
+const findoutCommentReply=async function(req,res,targetType){
+    const {parrentId,cursor}=req.body
+    const userId=req.user?._id
+    const limit=11
+
+    if(!mongoose.Types.ObjectId.isValid(parrentId)){
+        throw new ApiError(400,"Id is not matching to fetch Any comment")
+    }
+
+    const userObjectId=userId?new mongoose.Types.ObjectId(userId):null
+
+    const match={
+        parrentId
+    }
+
+    if(cursor){
+        match._id={$lt:new mongoose.Types.ObjectId(cursor)}
+    }
+
+
+    const response=await Comment.aggregate([
+        {
+            $match:match
+        },
+        {
+            $sort:{_id:-1}
+        },
+        {
+            $limit:limit
+        },
+        {
+            $addFields:{
+                isEditable:userObjectId?{
+                    $eq:["$owner", userObjectId]
+                }:false
+            }
+        },
+        {
+            $lookup:{
+                from:"comments",
+                let:{
+                    replyId:"$_id"
+                },
+                pipeline:[
+                    {
+                        $match:{
+                            $expr:{
+                                $eq:["$parrentId","$$replyId"]
+                            }
+                        }
+                        
+                    },
+                    {
+                        $sort:{_id:-1}
+                    },
+                    {
+                        $addFields:{
+                            isEditable:userObjectId?{
+                                $eq:["$owner",userObjectId]
+                            }:false
+                        }
+                    }
+                ],
+                as:"replies"
+            }
+            
+
+        }
+    ])
+
+    const hasMore=response.length>10
+    const comments=response.slice(0,10)
+    const nextCursor=comments.length>0?comments[comments.length-1]._id:null     
+
+    return res
+    .status(200)
+    .json(new ApiResponse(
+        200,
+        {
+            comments,
+            nextCursor,
+            hasMore
+        },
+        "Fetched Succesfully"
+    )) 
+}
+
 //Find Comment For Video with the help of upper fucntion
 export const findCommentForVideo=asyncHandler(async function (req,res) {
     await findoutComment(req,res,"Video")
@@ -207,3 +322,11 @@ export const findCommentForVideo=asyncHandler(async function (req,res) {
 export const findCommentForTweet=asyncHandler(async function (req,res) {
     await findoutComment(req,res,"Tweet")
 })
+
+export const findCommentReplyForVideo=asyncHandler(async function(req,res) {
+    await findoutCommentReply(req,res,"Video")
+})
+
+export const findCommentReplyForTweet=asyncHandler(async function(req,res) {
+    await findoutCommentReply(req,res,"Tweet")
+})  
