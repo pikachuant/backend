@@ -7,12 +7,14 @@ import mongoose from "mongoose";
 //DO Comment On Video And Tweet
 export const doComment=asyncHandler(async function(req,res) {
     const userId=req.user?._id
+
     if (!userId) {
         throw new ApiError(401,"User is not authenticated")
     }
 
-    const {comment,targetId,targetType}=req.body
+    let {comment,targetId,targetType,parrentId}=req.body
     
+    parrentId = parrentId ?? null
 
     if(!comment || !targetId || !targetType){
         throw new ApiError(400,"user must need to Provide ALL Stuff to get comment")
@@ -27,7 +29,8 @@ export const doComment=asyncHandler(async function(req,res) {
             comment,
             owner:userId,
             targetId,
-            targetType
+            targetType,
+            parrentId
         }
     )
 
