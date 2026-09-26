@@ -222,7 +222,7 @@ const router=Router()
     findCommentForTweet
   )
 
-  router.route("/yotube/comment/reply").get(
+  router.route("/yotube/comment/reply").post(
     optionalVerfiyJwt,
     findCommentReplyForVideo
   )
