@@ -274,7 +274,9 @@ const findoutComment=async function(req,res,targetType) {
         },
         {
             $project:{
-                likes:0
+                likes:0,
+                targetId:0,
+                targetType:0
             }
         }
         
