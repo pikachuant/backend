@@ -198,10 +198,50 @@ const findoutComment=async function(req,res,targetType) {
         //less than id because new id > old id
     }
 
-    const Allcomment=await Comment.find(query)
-    .sort({_id: -1 })
-    //will sort greater first small last soo newest comment first oldest last
-    .limit(Limit)
+    let userObjectId=userId?new mongoose.Types.ObjectId(userId):null
+
+    const Allcomment=await Comment.aggregate([
+        {
+            $match:query
+        },
+        {
+            $sort:{
+                _id:-1
+            }
+        },
+        {
+            $limit:Limit
+        },
+        {
+            $lookup:{
+                from:"users",
+                localField:"$owner",
+                foreignField:"_id",
+                pipeline:[{
+                    $project:{
+                        _id:1,
+                        username:1,
+                        avatar:1
+                    }
+                }],
+                as:"owner"
+            }
+
+        },
+        {
+            $unwind:"$owner"
+        },
+        {
+            $addFields:{
+                isEditable:userObjectId?
+                {
+                    $eq:["$owner._id",userObjectId]
+                }
+                :false
+            }
+        }
+
+    ])
 
     if(!Allcomment){
         throw new ApiError(400,"Comemnt not Found")
@@ -241,14 +281,18 @@ const findoutCommentReply=async function(req,res){
     if(!mongoose.Types.ObjectId.isValid(parrentId)){
         throw new ApiError(400,"Id is not matching to fetch Any comment")
     }
+    const parentObjectId = new mongoose.Types.ObjectId(parrentId);
 
     const userObjectId=userId?new mongoose.Types.ObjectId(userId):null
 
     const match={
-        parrentId
+        parrentId:parentObjectId
     }
 
     if(cursor){
+        if (!mongoose.Types.ObjectId.isValid(cursor)) {
+            throw new ApiError(400, "Invalid cursor");
+        }
         match._id={$lt:new mongoose.Types.ObjectId(cursor)}
     }
 
@@ -264,9 +308,30 @@ const findoutCommentReply=async function(req,res){
             $limit:limit
         },
         {
+            $lookup:{
+                from:"users",
+                localField:"owner",
+                foreignField:"_id",
+                pipeline:[
+                    {
+                        $project:{
+                            _id:1,
+                            username:1,
+                            avatar:1
+                        },
+                        
+                    }
+                ],
+                as:"owner"
+            }
+        },
+        {
+            $unwind:"$owner"
+        },
+        {
             $addFields:{
                 isEditable:userObjectId?{
-                    $eq:["$owner", userObjectId]
+                $eq:["$owner._id",userObjectId]
                 }:false
             }
         },
@@ -289,9 +354,30 @@ const findoutCommentReply=async function(req,res){
                         $sort:{_id:-1}
                     },
                     {
+                        $lookup:{
+                          from:"users",
+                          localField:"owner",
+                          foreignField:"_id",
+                          pipeline:[
+                              {
+                                 $project:{
+                                  _id:1,
+                                  username:1,
+                                  avatar:1
+                                },
+                                
+                              } 
+                            ],
+                            as:"owner"
+                        }
+                    },
+                    {
+                       $unwind:"$owner"
+                    },
+                    {
                         $addFields:{
                             isEditable:userObjectId?{
-                                $eq:["$owner",userObjectId]
+                                $eq:["$owner._id",userObjectId]
                             }:false
                         }
                     }
