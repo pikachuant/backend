@@ -271,6 +271,11 @@ const findoutComment=async function(req,res,targetType) {
                         $size:"$likes"
                     }
                 }
+        },
+        {
+            $project:{
+                likes:0
+            }
         }
         
     ])
