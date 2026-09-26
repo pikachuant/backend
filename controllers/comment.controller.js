@@ -189,8 +189,9 @@ const findoutComment=async function(req,res,targetType) {
     }
 
     let query={
-        targetId,
-        targetType
+        targetId:new mongoose.Types.ObjectId(targetId),
+        targetType,
+        parentId: null
     }
 
     if(cursor){
@@ -215,7 +216,7 @@ const findoutComment=async function(req,res,targetType) {
         {
             $lookup:{
                 from:"users",
-                localField:"$owner",
+                localField:"owner",
                 foreignField:"_id",
                 pipeline:[{
                     $project:{
