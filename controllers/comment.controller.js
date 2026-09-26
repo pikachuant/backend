@@ -269,19 +269,19 @@ const findoutComment=async function(req,res,targetType) {
 }
 
 const findoutCommentReply=async function(req,res){
-    const {parrentId,cursor}=req.body
+    const {parentId,cursor}=req.body
     const userId=req.user?._id
     const limit=11
 
-    if(!mongoose.Types.ObjectId.isValid(parrentId)){
+    if(!mongoose.Types.ObjectId.isValid(parentId)){
         throw new ApiError(400,"Id is not matching to fetch Any comment")
     }
-    const parentObjectId = new mongoose.Types.ObjectId(parrentId);
+    const parentObjectId = new mongoose.Types.ObjectId(parentId);
 
     const userObjectId=userId?new mongoose.Types.ObjectId(userId):null
 
     const match={
-        parrentId:parentObjectId
+        parentId:parentObjectId
     }
 
     if(cursor){
