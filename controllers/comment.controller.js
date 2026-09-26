@@ -250,12 +250,6 @@ const findoutComment=async function(req,res,targetType) {
     const hasMore=Allcomment.length>10;
     const comments=Allcomment.slice(0,10)
 
-    let commentEditable=comments.map((comment)=>{
-       let obj=comment.toObject()
-       obj.isEditable= userId && userId.toString()===obj.owner.toString()
-       return obj
-    })
-
     const nextCursor=comments.length>0?comments[comments.length-1]._id:null
 
     return res.
@@ -264,7 +258,7 @@ const findoutComment=async function(req,res,targetType) {
         new ApiResponse(
             200,
             {
-                comments:commentEditable,
+                comments,
                 nextCursor,
                 hasMore
             },
