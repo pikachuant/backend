@@ -240,8 +240,39 @@ const findoutComment=async function(req,res,targetType) {
                 }
                 :false
             }
-        }
+        },
+        {
+            $lookup:{
+                from:"likes",
+                let: {
+                    commentId: "$_id",
+                    commentTargetType:"Comment"
+                }, 
+                pipeline:[
+                    {
+                        $match:{$expr:{
+                            $and:[
+                                {$eq:["$$commentId","$targetId"]},
+                                {$eq:["$targetType","$$commentTargetType"]}
+                            ]
+                        }}
+                    }
+                ],
+                as:"likes"
+            }
+        },
+        {
+                $addFields:{
+                    isLiked:userObjectId?
+                    {$in:["$likes.likedBy",userObjectId]}
+                    :false,
 
+                    totalLikes:{
+                        $size:"$likes"
+                    }
+                }
+        }
+        
     ])
 
     if(!Allcomment){
