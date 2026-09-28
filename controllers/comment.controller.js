@@ -401,93 +401,9 @@ const findoutCommentReply=async function(req,res){
             }
         },
         {
-            $lookup:{
-                from:"comments",
-                let:{
-                    replyId:"$_id"
-                },
-                pipeline:[
-                    {
-                        $match:{
-                            $expr:{
-                                $eq:["$parentId","$$replyId"]
-                            }
-                        }
-                        
-                    },
-                    {
-                        $sort:{_id:-1}
-                    },
-                    {
-                        $lookup:{
-                          from:"users",
-                          localField:"owner",
-                          foreignField:"_id",
-                          pipeline:[
-                              {
-                                 $project:{
-                                  _id:1,
-                                  username:1,
-                                  avatar:1
-                                },
-                                
-                              } 
-                            ],
-                            as:"owner"
-                        }
-                    },
-                    {
-                       $unwind:"$owner"
-                    },
-                    {
-            $lookup:{
-                from:"likes",
-                let:{
-                    commentId:"$_id",
-                    commentTargetType:"Comment"
-                },
-                pipeline:[
-                    {
-                        $match:{
-                            $expr:{
-                                $and:[
-                                    {$eq:["$$commentId","$targetId"]},
-                                    {$eq:["$$commentTargetType","$targetType"]}
-                                ]
-                            }
-                        }
-                    }
-                ],
-                as:"likes"
-            }
-        },
-        {
-            $addFields:{
-                isEditable:userObjectId?{
-                $eq:["$owner._id",userObjectId]
-                }:false,
-
-                isLiked:userObjectId?{
-                $in:["$likes.likedBy",userObjectId]
-                }:false,
-
-                totalLikes:{
-                    $size:"$likes"
-                }
-
-
-            }
-        },
-        {
             $project:{
                 likes:0
             }
-        }
-                ],
-                as:"replies"
-            }
-            
-
         }
     ])
 
