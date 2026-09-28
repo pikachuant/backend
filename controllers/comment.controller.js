@@ -150,7 +150,9 @@ export const deleteComment = asyncHandler(async function (req, res) {
 
 //Function for Fetch Comment on Pagination of limit 10
 const findoutComment = async function (req, res, targetType) {
-  const { targetId, cursor, parentId } = req.body;
+  const targetId = req.body.targetId;
+  const cursor = req.body.cursor;
+  const parentId = req.body.parentId;
   //send the last comment createdAt time soo from the basis of last comment date
   const userId = req.user?._id;
   if (parentId) {
