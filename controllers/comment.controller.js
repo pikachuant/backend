@@ -1,443 +1,436 @@
-import {asyncHandler} from "../utils/asyncHandler.js"
+import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { Comment } from "../models/comment.model.js";
 import mongoose from "mongoose";
 
 //DO Comment On Video And Tweet
-export const doComment=asyncHandler(async function(req,res) {
-    const userId=req.user?._id
+export const doComment = asyncHandler(async function (req, res) {
+  const userId = req.user?._id;
 
-    if (!userId) {
-        throw new ApiError(401,"User is not authenticated")
+  if (!userId) {
+    throw new ApiError(401, "User is not authenticated");
+  }
+
+  let { comment, targetId, targetType, parentId } = req.body;
+
+  parentId = parentId || null;
+
+  if (!comment) {
+    throw new ApiError(400, "user must need to Provide Comment to Do Comment");
+  }
+
+  if (parentId && !mongoose.Types.ObjectId.isValid(parentId)) {
+    throw new ApiError(400, "Please pass a Valid parrentId");
+  }
+
+  if (!parentId) {
+    if (!targetId || !targetType) {
+      throw new ApiError(
+        400,
+        "Please Provide targetId and targetType to Do Comment",
+      );
     }
-
-    let {comment,targetId,targetType,parentId}=req.body
-    
-    parentId = parentId || null
-
-    if(!comment){
-        throw new ApiError(400,"user must need to Provide Comment to Do Comment")
+    if (!mongoose.Types.ObjectId.isValid(targetId)) {
+      throw new ApiError(400, "Please pass a Valid targetId");
     }
+  }
 
+  const response = await Comment.create({
+    comment,
+    owner: userId,
+    targetId,
+    targetType,
+    parentId,
+  });
 
-    if(parentId && !mongoose.Types.ObjectId.isValid(parentId)) {
-        throw new ApiError(400,"Please pass a Valid parrentId")
+  if (parentId) {
+    const response = await Comment.findByIdAndUpdate(parentId, {
+      $inc: { totalReplies: 1 },
+    });
+    if (!response) {
+      throw new ApiError(
+        500,
+        "Something went wrong during updating the totalReplies",
+      );
     }
+  }
 
-    if(!parentId){
-        if(!targetId || !targetType){
-            throw new ApiError(400,"Please Provide targetId and targetType to Do Comment")
-        }
-        if(!mongoose.Types.ObjectId.isValid(targetId)){
-          throw new ApiError(400,"Please pass a Valid targetId")
-        }
-    }
+  if (!response) {
+    throw new ApiError(500, "Somethig went wrong during posting the comment");
+  }
 
-    
-
-    const response=await Comment.create(
-        {
-            comment,
-            owner:userId,
-            targetId,
-            targetType,
-            parentId
-        }
-    )
-
-    if(parentId){
-        const response=await Comment.findByIdAndUpdate(
-            parentId,
-            {
-                $inc:{totalReplies:1}
-            }
-        )
-        if(!response){
-            throw new ApiError(500,"Something went wrong during updating the totalReplies")
-        }
-    }
-
-
-    if(!response){
-        throw new ApiError(500,"Somethig went wrong during posting the comment")
-    }
-
-    return res
-    .status(200)
-    .json(
-        new ApiResponse(
-            "200",
-            response,
-            "Comment Done"
-        )
-    )
-
-})
+  return res.status(200).json(new ApiResponse("200", response, "Comment Done"));
+});
 
 //Update Comment
-export const updateComment=asyncHandler(async function(req,res) {
-    const userId = req.user?._id;
-    if(!userId){
-        throw new ApiError(401,"User is not authenticated")
-    }
-    const {id,comment}=req.body
-    
+export const updateComment = asyncHandler(async function (req, res) {
+  const userId = req.user?._id;
+  if (!userId) {
+    throw new ApiError(401, "User is not authenticated");
+  }
+  const { id, comment } = req.body;
 
-    if(!id || !comment){
-        throw new ApiError(400,"User is not Authenticated to Do that")
-    }
-    
-    const existingComment=await Comment.findById(id)
-    
-    if(!existingComment){
-        throw new ApiError(400,"Comment not Found to Edit")
-    }
+  if (!id || !comment) {
+    throw new ApiError(400, "User is not Authenticated to Do that");
+  }
 
+  const existingComment = await Comment.findById(id);
 
-    if(existingComment.owner.toString()!==userId.toString()){
-        throw new ApiError(400,"You are not authenticated to do the Update")
-    }
+  if (!existingComment) {
+    throw new ApiError(400, "Comment not Found to Edit");
+  }
 
-    if(existingComment.comment.trim()==comment){
-        throw new ApiError(400,"If you wants to update the comment please update with new thoght now with same Comment")
-    }
+  if (existingComment.owner.toString() !== userId.toString()) {
+    throw new ApiError(400, "You are not authenticated to do the Update");
+  }
 
+  if (existingComment.comment.trim() == comment) {
+    throw new ApiError(
+      400,
+      "If you wants to update the comment please update with new thoght now with same Comment",
+    );
+  }
 
-    const response=await Comment.findByIdAndUpdate(
-        id,
-        {
-            comment
-        },
-        { returnDocument: "after", runValidators: true }
-    )
+  const response = await Comment.findByIdAndUpdate(
+    id,
+    {
+      comment,
+    },
+    { returnDocument: "after", runValidators: true },
+  );
 
-    if(!response){
-        throw new ApiError(500,"Something went wrong during update the comment")
-    }
+  if (!response) {
+    throw new ApiError(500, "Something went wrong during update the comment");
+  }
 
-    return res
+  return res
     .status(200)
-    .json(
-        new ApiResponse(
-            200,
-            response,
-            "Comment Updated Succesfully"
-        )
-    )
-})
+    .json(new ApiResponse(200, response, "Comment Updated Succesfully"));
+});
 
 //Delete Comment
-export const deleteComment=asyncHandler(async function (req,res) {
-    const userId=req.user?._id
-    const{commentId}=req.body
+export const deleteComment = asyncHandler(async function (req, res) {
+  const userId = req.user?._id;
+  const { commentId } = req.body;
 
-   if (!userId) {
-      throw new ApiError(401, "User not authenticated");
+  if (!userId) {
+    throw new ApiError(401, "User not authenticated");
+  }
+
+  if (!commentId) {
+    throw new ApiError(400, "Comment ID is required");
+  }
+
+  const response = await Comment.findOneAndDelete({
+    _id: commentId,
+    owner: userId,
+  });
+
+  if (!response) {
+    throw new ApiError(400, "Not authorized or comment not found");
+  }
+
+  if (response.parentId) {
+    const updateParent = await Comment.findByIdAndUpdate(response.parentId, {
+      $inc: { totalReplies: -1 },
+    });
+    if (!updateParent) {
+      throw new ApiError(
+        500,
+        "Something went wrong during updating the totalReplies",
+      );
     }
+  }
 
-   if (!commentId) {
-       throw new ApiError(400, "Comment ID is required");
-    }
-
-    const response=await Comment.findOneAndDelete(
-        {
-            _id:commentId,
-            owner:userId
-        }
-    )
-
-    if(!response){
-        throw new ApiError(400,"Not authorized or comment not found")
-    }
-
-    if(response.parentId){
-        const updateParent=await Comment.findByIdAndUpdate(
-            response.parentId,
-            {
-                $inc:{totalReplies:-1}                  
-            }
-        )
-        if(!updateParent){
-            throw new ApiError(500,"Something went wrong during updating the totalReplies")
-        }
-    }
-
-    return res
+  return res
     .status(200)
-    .json(
-        new ApiResponse(
-            200,
-            "Comment Deleted Successfully"
-        )
-    )
-    
-})
+    .json(new ApiResponse(200, "Comment Deleted Successfully"));
+});
 
 //Function for Fetch Comment on Pagination of limit 10
-const findoutComment=async function(req,res,targetType) {
-    const {targetId}=req.params
-    const {cursor}=req.query
-    //send the last comment createdAt time soo from the basis of last comment date
-    const userId=req.user?._id
-    
-    let Limit=11
-    //After "?" we can send any query
-    
-    if(!mongoose.Types.ObjectId.isValid(targetId)){
-        throw new ApiError(400,"Id is not matching to fetch Any comment")
+const findoutComment = async function (req, res, targetType) {
+  const { targetId, cursor, parentId } = req.body;
+  //send the last comment createdAt time soo from the basis of last comment date
+  const userId = req.user?._id;
+  if (parentId) {
+    if (!mongoose.Types.ObjectId.isValid(parentId)) {
+      throw new ApiError(400, "Id is not matching to fetch Any comment");
     }
+  }
 
-    let query={
-        targetId:new mongoose.Types.ObjectId(targetId),
-        targetType,
-        parentId: null
+  let Limit = 11;
+  //After "?" we can send any query
+
+  if (targetId) {
+    if (!mongoose.Types.ObjectId.isValid(targetId)) {
+      throw new ApiError(400, "Id is not matching to fetch Any comment");
     }
+  }
 
-    if(cursor){
-        query._id={$lt:new mongoose.Types.ObjectId(cursor)}
-        //less than id because new id > old id
+  if (parentId) {
+    query = {
+      parentId: new mongoose.Types.ObjectId(parentId),
+    };
+  } else {
+    query = {
+      targetId: new mongoose.Types.ObjectId(targetId),
+      targetType,
+      parentId: null,
+    };
+  }
+
+  if (cursor) {
+    if (!new mongoose.Types.ObjectId(cursor)) {
+      throw new ApiError(400, "Invalid cursor");
     }
+    query._id = { $lt: new mongoose.Types.ObjectId(cursor) };
+  }
 
-    let userObjectId=userId?new mongoose.Types.ObjectId(userId):null
+  let userObjectId = userId ? new mongoose.Types.ObjectId(userId) : null;
 
-    const Allcomment=await Comment.aggregate([
-        {
-            $match:query
-        },
-        {
-            $sort:{
-                _id:-1
-            }
-        },
-        {
-            $limit:Limit
-        },
-        {
-            $lookup:{
-                from:"users",
-                localField:"owner",
-                foreignField:"_id",
-                pipeline:[{
-                    $project:{
-                        _id:1,
-                        username:1,
-                        avatar:1
-                    }
-                }],
-                as:"owner"
-            }
-
-        },
-        {
-            $unwind:"$owner"
-        },
-        {
-            $addFields:{
-                isEditable:userObjectId?
-                {
-                    $eq:["$owner._id",userObjectId]
-                }
-                :false
-            }
-        },
-        {
-            $lookup:{
-                from:"likes",
-                let: {
-                    commentId: "$_id",
-                    commentTargetType:"Comment"
-                }, 
-                pipeline:[
-                    {
-                        $match:{$expr:{
-                            $and:[
-                                {$eq:["$$commentId","$targetId"]},
-                                {$eq:["$targetType","$$commentTargetType"]}
-                            ]
-                        }}
-                    }
-                ],
-                as:"likes"
-            }
-        },
-        {
-                $addFields:{
-                    isLiked:userObjectId?
-                    {$in:["$likes.likedBy",userObjectId]}
-                    :false,
-
-                    totalLikes:{
-                        $size:"$likes"
-                    }
-                }
-        },
-        {
-            $project:{
-                likes:0,
-                targetId:0,
-                targetType:0
-            }
-        }
-        
-    ])
-
-    if(!Allcomment){
-        throw new ApiError(400,"Comemnt not Found")
-    }
-    const hasMore=Allcomment.length>10;
-    const comments=Allcomment.slice(0,10)
-
-    const nextCursor=comments.length>0?comments[comments.length-1]._id:null
-
-    return res.
-    status(200)
-    .json(
-        new ApiResponse(
-            200,
-            {
-                comments,
-                nextCursor,
-                hasMore
+  const Allcomment = await Comment.aggregate([
+    {
+      $match: query,
+    },
+    {
+      $sort: {
+        _id: -1,
+      },
+    },
+    {
+      $limit: Limit,
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "owner",
+        foreignField: "_id",
+        pipeline: [
+          {
+            $project: {
+              _id: 1,
+              username: 1,
+              avatar: 1,
             },
-            "Fetched Succesfully"
-        )
-    )
-
-}
-
-const findoutCommentReply=async function(req,res){
-    const {parentId,cursor}=req.body
-    const userId=req.user?._id
-    const limit=11
-
-    if(!mongoose.Types.ObjectId.isValid(parentId)){
-        throw new ApiError(400,"Id is not matching to fetch Any comment")
-    }
-    const parentObjectId = new mongoose.Types.ObjectId(parentId);
-
-    const userObjectId=userId?new mongoose.Types.ObjectId(userId):null
-
-    const match={
-        parentId:parentObjectId
-    }
-
-    if(cursor){
-        if (!mongoose.Types.ObjectId.isValid(cursor)) {
-            throw new ApiError(400, "Invalid cursor");
-        }
-        match._id={$lt:new mongoose.Types.ObjectId(cursor)}
-    }
-
-
-    const response=await Comment.aggregate([
-        {
-            $match:match
+          },
+        ],
+        as: "owner",
+      },
+    },
+    {
+      $unwind: "$owner",
+    },
+    {
+      $addFields: {
+        isEditable: userObjectId
+          ? {
+              $eq: ["$owner._id", userObjectId],
+            }
+          : false,
+      },
+    },
+    {
+      $lookup: {
+        from: "likes",
+        let: {
+          commentId: "$_id",
+          commentTargetType: "Comment",
         },
-        {
-            $sort:{_id:-1}
-        },
-        {
-            $limit:limit
-        },
-        {
-            $lookup:{
-                from:"users",
-                localField:"owner",
-                foreignField:"_id",
-                pipeline:[
-                    {
-                        $project:{
-                            _id:1,
-                            username:1,
-                            avatar:1
-                        },
-                        
-                    }
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ["$$commentId", "$targetId"] },
+                  { $eq: ["$targetType", "$$commentTargetType"] },
                 ],
-                as:"owner"
-            }
+              },
+            },
+          },
+        ],
+        as: "likes",
+      },
+    },
+    {
+      $addFields: {
+        isLiked: userObjectId
+          ? { $in: ["$likes.likedBy", userObjectId] }
+          : false,
+
+        totalLikes: {
+          $size: "$likes",
         },
-        {
-            $unwind:"$owner"
+      },
+    },
+    {
+      $project: {
+        likes: 0,
+        targetId: 0,
+        targetType: 0,
+      },
+    },
+  ]);
+
+  if (!Allcomment) {
+    throw new ApiError(400, "Comemnt not Found");
+  }
+  const hasMore = Allcomment.length > 10;
+  const comments = Allcomment.slice(0, 10);
+
+  const nextCursor =
+    comments.length > 0 ? comments[comments.length - 1]._id : null;
+
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        comments,
+        nextCursor,
+        hasMore,
+      },
+      "Fetched Succesfully",
+    ),
+  );
+};
+
+const findoutCommentReply = async function (req, res) {
+  const { parentId, cursor } = req.body;
+  const userId = req.user?._id;
+  const limit = 11;
+
+  if (!mongoose.Types.ObjectId.isValid(parentId)) {
+    throw new ApiError(400, "Id is not matching to fetch Any comment");
+  }
+  const parentObjectId = new mongoose.Types.ObjectId(parentId);
+
+  const userObjectId = userId ? new mongoose.Types.ObjectId(userId) : null;
+
+  const match = {
+    parentId: parentObjectId,
+  };
+
+  if (cursor) {
+    if (!mongoose.Types.ObjectId.isValid(cursor)) {
+      throw new ApiError(400, "Invalid cursor");
+    }
+    match._id = { $lt: new mongoose.Types.ObjectId(cursor) };
+  }
+
+  const response = await Comment.aggregate([
+    {
+      $match: match,
+    },
+    {
+      $sort: { _id: -1 },
+    },
+    {
+      $limit: limit,
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "owner",
+        foreignField: "_id",
+        pipeline: [
+          {
+            $project: {
+              _id: 1,
+              username: 1,
+              avatar: 1,
+            },
+          },
+        ],
+        as: "owner",
+      },
+    },
+    {
+      $unwind: "$owner",
+    },
+    {
+      $lookup: {
+        from: "likes",
+        let: {
+          commentId: "$_id",
+          commentTargetType: "Comment",
         },
-        {
-            $lookup:{
-                from:"likes",
-                let:{
-                    commentId:"$_id",
-                    commentTargetType:"Comment"
-                },
-                pipeline:[
-                    {
-                        $match:{
-                            $expr:{
-                                $and:[
-                                    {$eq:["$$commentId","$targetId"]},
-                                    {$eq:["$$commentTargetType","$targetType"]}
-                                ]
-                            }
-                        }
-                    }
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ["$$commentId", "$targetId"] },
+                  { $eq: ["$$commentTargetType", "$targetType"] },
                 ],
-                as:"likes"
+              },
+            },
+          },
+        ],
+        as: "likes",
+      },
+    },
+    {
+      $addFields: {
+        isEditable: userObjectId
+          ? {
+              $eq: ["$owner._id", userObjectId],
             }
-        },
-        {
-            $addFields:{
-                isEditable:userObjectId?{
-                $eq:["$owner._id",userObjectId]
-                }:false,
+          : false,
 
-                isLiked:userObjectId?{
-                $in:["$likes.likedBy",userObjectId]
-                }:false,
-
-                totalLikes:{
-                    $size:"$likes"
-                }
-
-
+        isLiked: userObjectId
+          ? {
+              $in: ["$likes.likedBy", userObjectId],
             }
-        },
-        {
-            $project:{
-                likes:0
-            }
-        }
-    ])
+          : false,
 
-    const hasMore=response.length>10
-    const comments=response.slice(0,10)
-    const nextCursor=comments.length>0?comments[comments.length-1]._id:null     
-
-    return res
-    .status(200)
-    .json(new ApiResponse(
-        200,
-        {
-            comments,
-            nextCursor,
-            hasMore
+        totalLikes: {
+          $size: "$likes",
         },
-        "Fetched Succesfully"
-    )) 
-}
+      },
+    },
+    {
+      $project: {
+        likes: 0,
+      },
+    },
+  ]);
+
+  const hasMore = response.length > 10;
+  const comments = response.slice(0, 10);
+  const nextCursor =
+    comments.length > 0 ? comments[comments.length - 1]._id : null;
+
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        comments,
+        nextCursor,
+        hasMore,
+      },
+      "Fetched Succesfully",
+    ),
+  );
+};
 
 //Find Comment For Video with the help of upper fucntion
-export const findCommentForVideo=asyncHandler(async function (req,res) {
-    await findoutComment(req,res,"Video")
-})
+export const findCommentForVideo = asyncHandler(async function (req, res) {
+  await findoutComment(req, res, "Video");
+});
 
 //Find Comment For Tweet with the help of upper fucntion
-export const findCommentForTweet=asyncHandler(async function (req,res) {
-    await findoutComment(req,res,"Tweet")
-})
+export const findCommentForTweet = asyncHandler(async function (req, res) {
+  await findoutComment(req, res, "Tweet");
+});
 
-export const findCommentReplyForVideo=asyncHandler(async function(req,res) {
-    await findoutCommentReply(req,res)
-})
+export const findCommentForReplies = asyncHandler(async function (req, res) {
+  await findoutComment(req, res);
+});
 
-export const findCommentReplyForTweet=asyncHandler(async function(req,res) {
-    await findoutCommentReply(req,res)
-})  
+export const findCommentReplyForVideo = asyncHandler(async function (req, res) {
+  await findoutCommentReply(req, res);
+});
+
+export const findCommentReplyForTweet = asyncHandler(async function (req, res) {
+  await findoutCommentReply(req, res);
+});

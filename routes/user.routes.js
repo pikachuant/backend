@@ -5,7 +5,7 @@ import { verifyJWT } from "../middlewares/jwt.middleware.js";
 import { addViews, allUserVideosDetails, deleteVideo, editVideo, findVideoByName, getFeedVideos, getvideoById, videoUploader } from "../controllers/video.controller.js";
 import { doLike, getLikeForComment, getLikeForTweet, getLikeForVideo, unLike } from "../controllers/like.controller.js";
 import {optionalVerfiyJwt} from "../middlewares/optional.middleware.js"
-import {deleteComment, doComment, findCommentForTweet, findCommentForVideo, findCommentReplyForTweet, findCommentReplyForVideo, updateComment} from "../controllers/comment.controller.js"
+import {deleteComment, doComment, findCommentForReplies, findCommentForTweet, findCommentForVideo, findCommentReplyForTweet, findCommentReplyForVideo, updateComment} from "../controllers/comment.controller.js"
 import {createTweet, deleteTweet, editTweet, fetchAllTweets} from "../controllers/tweet.controller.js"
 import {addnewItemtoPlayList, createPlayList, findPlayList, removeItemFromPlaylist, removePlaylist} from "../controllers/playlist.controller.js"
 
@@ -212,14 +212,19 @@ const router=Router()
     deleteComment
   )
 
-  router.route("/user/video/comment/:targetId").get(
+  router.route("/user/video/comment").POST(
     optionalVerfiyJwt,
     findCommentForVideo
   )
 
-  router.route("/user/tweet/comment/:targetId").get(
+  router.route("/user/tweet/comment").POST(
     optionalVerfiyJwt,
     findCommentForTweet
+  )
+
+  router.route("user/comment/replies").POST(
+    optionalVerfiyJwt,
+    findCommentForReplies
   )
 
   router.route("/yotube/comment/reply").post(
