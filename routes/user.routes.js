@@ -212,17 +212,17 @@ const router=Router()
     deleteComment
   )
 
-  router.route("/user/video/comment").POST(
+  router.route("/user/video/comment").post(
     optionalVerfiyJwt,
     findCommentForVideo
   )
 
-  router.route("/user/tweet/comment").POST(
+  router.route("/user/tweet/comment").post(
     optionalVerfiyJwt,
     findCommentForTweet
   )
 
-  router.route("user/comment/replies").POST(
+  router.route("user/comment/replies").post(
     optionalVerfiyJwt,
     findCommentForReplies
   )
