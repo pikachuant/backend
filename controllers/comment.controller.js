@@ -362,10 +362,42 @@ const findoutCommentReply=async function(req,res){
             $unwind:"$owner"
         },
         {
+            $lookup:{
+                from:"likes",
+                let:{
+                    commentId:"$_id",
+                    commentTargetType:"Comment"
+                },
+                pipeline:[
+                    {
+                        $match:{
+                            $expr:{
+                                $and:[
+                                    {$eq:["$$commentId","$targetId"]},
+                                    {$eq:["$$commentTargetType","$targetType"]}
+                                ]
+                            }
+                        }
+                    }
+                ],
+                as:"likes"
+            }
+        },
+        {
             $addFields:{
                 isEditable:userObjectId?{
                 $eq:["$owner._id",userObjectId]
-                }:false
+                }:false,
+
+                isLiked:userObjectId?{
+                $in:["$likes.likedBy",userObjectId]
+                }:false,
+
+                totalLikes:{
+                    $size:"$likes"
+                }
+
+
             }
         },
         {
@@ -378,7 +410,7 @@ const findoutCommentReply=async function(req,res){
                     {
                         $match:{
                             $expr:{
-                                $eq:["$parrentId","$$replyId"]
+                                $eq:["$parentId","$$replyId"]
                             }
                         }
                         
@@ -408,12 +440,49 @@ const findoutCommentReply=async function(req,res){
                        $unwind:"$owner"
                     },
                     {
-                        $addFields:{
-                            isEditable:userObjectId?{
-                                $eq:["$owner._id",userObjectId]
-                            }:false
+            $lookup:{
+                from:"likes",
+                let:{
+                    commentId:"$_id",
+                    commentTargetType:"Comment"
+                },
+                pipeline:[
+                    {
+                        $match:{
+                            $expr:{
+                                $and:[
+                                    {$eq:["$$commentId","$targetId"]},
+                                    {$eq:["$$commentTargetType","$targetType"]}
+                                ]
+                            }
                         }
                     }
+                ],
+                as:"likes"
+            }
+        },
+        {
+            $addFields:{
+                isEditable:userObjectId?{
+                $eq:["$owner._id",userObjectId]
+                }:false,
+
+                isLiked:userObjectId?{
+                $in:["$likes.likedBy",userObjectId]
+                }:false,
+
+                totalLikes:{
+                    $size:"$likes"
+                }
+
+
+            }
+        },
+        {
+            $project:{
+                likes:0
+            }
+        }
                 ],
                 as:"replies"
             }
