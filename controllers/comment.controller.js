@@ -169,7 +169,7 @@ const findoutComment = async function (req, res, targetType) {
       throw new ApiError(400, "Id is not matching to fetch Any comment");
     }
   }
-
+  let query;
   if (parentId) {
     query = {
       parentId: new mongoose.Types.ObjectId(parentId),
