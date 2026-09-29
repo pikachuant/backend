@@ -257,7 +257,7 @@ const findoutComment = async function (req, res, targetType) {
     {
       $addFields: {
         isLiked: userObjectId
-          ? { $in: ["$likes.likedBy", userObjectId] }
+          ? { $in: [userObjectId, "$likes.likedBy"] }
           : false,
 
         totalLikes: {
