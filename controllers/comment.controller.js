@@ -381,7 +381,7 @@ const findoutCommentReply = async function (req, res) {
 
         isLiked: userObjectId
           ? {
-              $in: ["$likes.likedBy", userObjectId],
+              $in: [userObjectId,"$likes.likedBy"],
             }
           : false,
 
