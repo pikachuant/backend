@@ -297,7 +297,7 @@ const findoutComment = async function (req, res, targetType) {
 };
 
 const findoutCommentReply = async function (req, res) {
-  const { parentId, cursor } = req.body;
+  const { parentId, cursor, isReplyToReply } = req.body;
   const userId = req.user?._id;
   const limit = 11;
 
@@ -324,7 +324,7 @@ const findoutCommentReply = async function (req, res) {
       $match: match,
     },
     {
-      $sort: { _id: -1 },
+      $sort: { _id: isReplyToReply ? 1 : -1 },
     },
     {
       $limit: limit,
@@ -381,7 +381,7 @@ const findoutCommentReply = async function (req, res) {
 
         isLiked: userObjectId
           ? {
-              $in: [userObjectId,"$likes.likedBy"],
+              $in: [userObjectId, "$likes.likedBy"],
             }
           : false,
 
