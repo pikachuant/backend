@@ -180,10 +180,10 @@ const router=Router()
     unLike
   )
 
-  router.route("/user/video/:id/get-alllikes").post(
-    optionalVerfiyJwt,
-    getLikeForVideo
-  )
+  // router.route("/user/video/:id/get-alllikes").post(
+  //   optionalVerfiyJwt,
+  //   getLikeForVideo
+  // )
 
   router.route("/user/tweet/:id/get-alllikes").get(
     optionalVerfiyJwt,

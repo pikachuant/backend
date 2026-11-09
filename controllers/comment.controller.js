@@ -3,6 +3,8 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { Comment } from "../models/comment.model.js";
 import mongoose from "mongoose";
+import { Tweet } from "../models/tweet.model.js";
+import { Video } from "../models/video.model.js";
 
 //DO Comment On Video And Tweet
 export const doComment = asyncHandler(async function (req, res) {
@@ -16,7 +18,7 @@ export const doComment = asyncHandler(async function (req, res) {
 
   parentId = parentId || null;
 
-  if (!comment) {
+  if (!comment.trim()) {
     throw new ApiError(400, "user must need to Provide Comment to Do Comment");
   }
 
@@ -34,34 +36,100 @@ export const doComment = asyncHandler(async function (req, res) {
     if (!mongoose.Types.ObjectId.isValid(targetId)) {
       throw new ApiError(400, "Please pass a Valid targetId");
     }
-  }
-
-  const response = await Comment.create({
-    comment,
-    owner: userId,
-    targetId,
-    targetType,
-    parentId,
-  });
-
-  if (parentId) {
-    const response = await Comment.findByIdAndUpdate(parentId, {
-      $inc: { totalReplies: 1 },
-    });
-    if (!response) {
-      throw new ApiError(
-        500,
-        "Something went wrong during updating the totalReplies",
-      );
+    if (!["Tweet", "Video"].includes(targetType)) {
+      throw new ApiError(400, "Invalid targetType");
     }
   }
 
-  if (!response) {
-    throw new ApiError(500, "Somethig went wrong during posting the comment");
-  }
+  const session = await mongoose.startSession();
+  let newComment;
 
-  return res.status(200).json(new ApiResponse("200", response, "Comment Done"));
+  try {
+    await session.withTransaction(async () => {
+      if (parentId) {
+        const parent = await Comment.findById(parentId).session(session);
+
+        if (!parent) {
+          throw new ApiError(404, "Parent not found");
+        }
+      }
+
+      [newComment] = await Comment.create(
+        [
+          {
+            comment: comment.trim(),
+            owner: userId,
+            targetId,
+            targetType,
+            parentId,
+          },
+        ],
+        { session },
+      );
+
+      if (parentId) {
+        await Comment.findByIdAndUpdate(
+          parentId,
+          { $inc: { totalReplies: 1 } },
+          { session },
+        );
+      } else {
+        const Model = targetType === "Tweet" ? Tweet : Video;
+        await Model.findByIdAndUpdate(
+          targetId,
+          { $inc: { totalComment: 1 } },
+          { session },
+        );
+      }
+    });
+  } catch (error) {
+    console.error("Like transaction failed:", error);
+
+    throw new ApiError(500, "Something went wrong while processing your like");
+  } finally {
+    await session.endSession();
+  }
+  return res
+    .status(200)
+    .json(new ApiResponse("200", newComment, "Comment Done"));
 });
+
+// const response = await Comment.create({
+//   comment,
+//   owner: userId,
+//   targetId,
+//   targetType,
+//   parentId,
+// });
+
+// if (parentId) {
+//   const response = await Comment.findByIdAndUpdate(parentId, {
+//     $inc: { totalReplies: 1 },
+//   });
+//   if (!response) {
+//     throw new ApiError(
+//       500,
+//       "Something went wrong during updating the totalReplies",
+//     );
+//   }
+// }else{
+//   if(targetType==="Tweet"){
+//     await Tweet.findByIdAndUpdate(targetId,{
+//       $inc: { totalComment: 1 }
+//     })
+//   }else if(targetType ==="Video"){
+//     await Video.findByIdAndUpdate(targetId,{
+//       $inc:{totalComment: 1}
+//     })
+//   }
+// }
+
+// if (!response) {
+//   throw new ApiError(500, "Somethig went wrong during posting the comment");
+// }
+
+// return res.status(200).json(new ApiResponse("200", response, "Comment Done"));
+// });
 
 //Update Comment
 export const updateComment = asyncHandler(async function (req, res) {
@@ -122,25 +190,39 @@ export const deleteComment = asyncHandler(async function (req, res) {
     throw new ApiError(400, "Comment ID is required");
   }
 
-  const response = await Comment.findOneAndDelete({
-    _id: commentId,
-    owner: userId,
-  });
+  const session = await mongoose.startSession();
 
-  if (!response) {
-    throw new ApiError(400, "Not authorized or comment not found");
-  }
-
-  if (response.parentId) {
-    const updateParent = await Comment.findByIdAndUpdate(response.parentId, {
-      $inc: { totalReplies: -1 },
-    });
-    if (!updateParent) {
-      throw new ApiError(
-        500,
-        "Something went wrong during updating the totalReplies",
+  try {
+    await session.withTransaction(async () => {
+      const deletedComment = await Comment.findOneAndDelete(
+        {
+          _id: commentId,
+          owner: userId,
+        },
+        { session },
       );
-    }
+
+      if (!deletedComment) {
+        throw new ApiError(404, "Not authorized or comment not found");
+      }
+
+      if (deletedComment.parentId) {
+        await Comment.findByIdAndUpdate(
+          deletedComment.parentId,
+          { $inc: { totalReplies: -1 } },
+          { session },
+        );
+      } else {
+        const Model = deletedComment.targetType === "Tweet" ? Tweet : Video;
+        await Model.findByIdAndUpdate(
+          deletedComment.targetId,
+          { $inc: { totalComment: -1 } },
+          { session },
+        );
+      }
+    });
+  } finally {
+    await session.endSession();
   }
 
   return res
@@ -232,42 +314,51 @@ const findoutComment = async function (req, res, targetType) {
           : false,
       },
     },
-    {
-      $lookup: {
-        from: "likes",
-        let: {
-          commentId: "$_id",
-          commentTargetType: "Comment",
-        },
-        pipeline: [
+    ...(userObjectId
+      ? [
           {
-            $match: {
-              $expr: {
-                $and: [
-                  { $eq: ["$$commentId", "$targetId"] },
-                  { $eq: ["$targetType", "$$commentTargetType"] },
-                ],
+            $lookup: {
+              from: "likes",
+              let: {
+                commentId: "$_id",
+                userId: userObjectId,
+              },
+              pipeline: [
+                {
+                  $match: {
+                    $expr: {
+                      $and: [
+                        { $eq: ["$targetId", "$$commentId"] },
+                        { $eq: ["$targetType", "Comment"] },
+                        { $eq: ["$likedBy", "$$userId"] },
+                      ],
+                    },
+                  },
+                },
+                { $limit: 1 },
+                { $project: { _id: 1 } },
+              ],
+              as: "myLike",
+            },
+          },
+          {
+            $addFields: {
+              isLiked: {
+                $gt: [{ $size: "$myLike" }, 0],
               },
             },
           },
-        ],
-        as: "likes",
-      },
-    },
-    {
-      $addFields: {
-        isLiked: userObjectId
-          ? { $in: [userObjectId, "$likes.likedBy"] }
-          : false,
-
-        totalLikes: {
-          $size: "$likes",
-        },
-      },
-    },
+        ]
+      : [
+          {
+            $addFields: {
+              isLiked: false,
+            },
+          },
+        ]),
     {
       $project: {
-        likes: 0,
+        myLike: 0,
         targetId: 0,
         targetType: 0,
       },
@@ -349,28 +440,48 @@ const findoutCommentReply = async function (req, res) {
     {
       $unwind: "$owner",
     },
-    {
-      $lookup: {
-        from: "likes",
-        let: {
-          commentId: "$_id",
-          commentTargetType: "Comment",
-        },
-        pipeline: [
+    ...(userObjectId
+      ? [
           {
-            $match: {
-              $expr: {
-                $and: [
-                  { $eq: ["$$commentId", "$targetId"] },
-                  { $eq: ["$$commentTargetType", "$targetType"] },
-                ],
+            $lookup: {
+              from: "likes",
+              let: {
+                commentId: "$_id",
+                userId: userObjectId,
+              },
+              pipeline: [
+                {
+                  $match: {
+                    $expr: {
+                      $and: [
+                        { $eq: ["$targetId", "$$commentId"] },
+                        { $eq: ["$targetType", "Comment"] },
+                        { $eq: ["$likedBy", "$$userId"] },
+                      ],
+                    },
+                  },
+                },
+                { $limit: 1 },
+                { $project: { _id: 1 } },
+              ],
+              as: "myLike",
+            },
+          },
+          {
+            $addFields: {
+              isLiked: {
+                $gt: [{ $size: "$myLike" }, 0],
               },
             },
           },
-        ],
-        as: "likes",
-      },
-    },
+        ]
+      : [
+          {
+            $addFields: {
+              isLiked: false,
+            },
+          },
+        ]),
     {
       $addFields: {
         isEditable: userObjectId
@@ -378,21 +489,11 @@ const findoutCommentReply = async function (req, res) {
               $eq: ["$owner._id", userObjectId],
             }
           : false,
-
-        isLiked: userObjectId
-          ? {
-              $in: [userObjectId, "$likes.likedBy"],
-            }
-          : false,
-
-        totalLikes: {
-          $size: "$likes",
-        },
       },
     },
     {
       $project: {
-        likes: 0,
+        myLike: 0,
       },
     },
   ]);

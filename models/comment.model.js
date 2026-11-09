@@ -25,6 +25,10 @@ const commentSchema=new Schema({
     },
     totalReplies:{
         type:Number,
+    },
+    totalLikes:{
+        type:Number,
+        default:0
     }
 },{timestamps:true})
 

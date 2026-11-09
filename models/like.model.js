@@ -19,4 +19,14 @@ const likeSchema=new Schema({
 },
 {timestamps:true})
 
+likeSchema.index(
+  {
+    targetId: 1,
+    targetType: 1,
+    likedBy: 1,
+  },
+  {
+    unique: true,
+  }
+);
 export const Like=mongoose.model("Like",likeSchema)
