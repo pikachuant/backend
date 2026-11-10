@@ -8,7 +8,6 @@ import mongoose from "mongoose";
 import { v2 as cloudinary } from "cloudinary";
 import ffmpeg from "fluent-ffmpeg";
 
-
 function getUrlID(url) {
   try {
     const finalId = url.split("/backend/")[1];
@@ -238,7 +237,7 @@ export const getFeedVideos = asyncHandler(async function (req, res) {
       $project: {
         _id: 1,
         titile: 1,
-        videoFile:1,
+        videoFile: 1,
         description: 1,
         thumbnail: 1,
         duration: 1,
@@ -247,7 +246,7 @@ export const getFeedVideos = asyncHandler(async function (req, res) {
         createdAt: 1,
         "owner._id": 1,
         "owner.username": 1,
-        "owner.avatar": 1
+        "owner.avatar": 1,
       },
     },
   ]);
@@ -305,7 +304,7 @@ export const findVideoByName = asyncHandler(async function (req, res) {
 
 export const getvideoById = asyncHandler(async function (req, res) {
   const videoId = req.params?.videoId;
-  const id = req.user?._id;  
+  const id = req.user?._id;
 
   if (!videoId) {
     throw new ApiError(400, "Please provide a videoId to fetch the video");
@@ -322,14 +321,14 @@ export const getvideoById = asyncHandler(async function (req, res) {
         from: "users",
         localField: "owner",
         foreignField: "_id",
-        pipeline:[
-            {
-                $project:{
-                 _id: 1,
-                 username: 1,
-                 avatar: 1
-                }
-            }
+        pipeline: [
+          {
+            $project: {
+              _id: 1,
+              username: 1,
+              avatar: 1,
+            },
+          },
         ],
         as: "owner",
       },
@@ -340,8 +339,8 @@ export const getvideoById = asyncHandler(async function (req, res) {
     {
       $lookup: {
         from: "subscriptions",
-        let:{
-            ownerId:"$owner._id"
+        let: {
+          ownerId: "$owner._id",
         },
         pipeline: [
           {
@@ -351,6 +350,9 @@ export const getvideoById = asyncHandler(async function (req, res) {
               },
             },
           },
+          {
+            $count: "total",
+          },
         ],
         as: "subscribers",
       },
@@ -358,28 +360,25 @@ export const getvideoById = asyncHandler(async function (req, res) {
     {
       $addFields: {
         subscriberCount: {
-          $size: "$subscribers",
-        }
-      }
+        $if
+        },
+      },
     },
   ];
 
- if (id) {
+  if (id) {
     pipeline.push({
-        $addFields: {
-            isSubscribed: {
-                $in: [
-                    new mongoose.Types.ObjectId(id),
-                    "$subscribers.subscriber"
-                ]
-            }
-        }
+      $addFields: {
+        isSubscribed: {
+          $in: [new mongoose.Types.ObjectId(id), "$subscribers.subscriber"],
+        },
+      },
     });
   }
   pipeline.push({
     $project: {
-        subscribers: 0
-    }
+      subscribers: 0,
+    },
   });
   const response = await Video.aggregate(pipeline);
 

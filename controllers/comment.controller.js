@@ -59,9 +59,8 @@ export const doComment = asyncHandler(async function (req, res) {
           {
             comment: comment.trim(),
             owner: userId,
-            targetId,
-            targetType,
-            parentId,
+            ...(parentId ? {} : { targetId, targetType }),
+            parentId
           },
         ],
         { session },
