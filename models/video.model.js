@@ -42,6 +42,7 @@ const videoSchema = new Schema(
     totalLikes: {
       type: Number,
       default: 0,
+      min: 0,
     },
   },
   { timestamps: true },
