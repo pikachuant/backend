@@ -1,47 +1,50 @@
-import mongoose,{Schema} from "mongoose";
+import mongoose, { Schema } from "mongoose";
 
-const videoSchema=new Schema({
-    videoFile:{
-        type:String,//cloudinary
-        required:true
+const videoSchema = new Schema(
+  {
+    videoFile: {
+      type: String, //cloudinary
+      required: true,
     },
-    thumbnail:{
-        type:String,//cloudinary
-        required:true
+    thumbnail: {
+      type: String, //cloudinary
+      required: true,
     },
-    owner:{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:"User"
+    owner: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
     },
-    titile:{
-        type:String,
-        required:true
+    titile: {
+      type: String,
+      required: true,
     },
-    description:{
-        type:String,
-        required:true
+    description: {
+      type: String,
+      required: true,
     },
-    duration:{
-        type:Number,
-        required:true
+    duration: {
+      type: Number,
+      required: true,
     },
-    views:{
-        type:Number,
-        default:0
+    views: {
+      type: Number,
+      default: 0,
     },
-    isPublished:{
-        type:Boolean,
-        default:true
+    isPublished: {
+      type: Boolean,
+      default: true,
     },
-    totalComment:{
-        type:Number,
-        default:0
+    totalComment: {
+      type: Number,
+      default: 0,
+      min: 0,
     },
-    totalLikes:{
-        type:Number,
-        default:0
-    }
-},
-{timestamps:true})
+    totalLikes: {
+      type: Number,
+      default: 0,
+    },
+  },
+  { timestamps: true },
+);
 
-export const Video=mongoose.model("Video",videoSchema)
+export const Video = mongoose.model("Video", videoSchema);
