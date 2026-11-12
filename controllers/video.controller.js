@@ -360,7 +360,7 @@ export const getvideoById = asyncHandler(async function (req, res) {
     {
       $addFields: {
         subscriberCount: {
-        $if
+          $ifNull: [{ $first: "$subscribers.total" }, 0],
         },
       },
     },
