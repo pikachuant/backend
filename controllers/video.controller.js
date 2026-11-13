@@ -375,27 +375,28 @@ export const getvideoById = asyncHandler(async function (req, res) {
       },
     });
 
-    pipeline.push({
-      $lookup: {
-        from: "likes",
-        localField: "_id",
-        foreignField: "targetId",
-        pipeline: [
-          {
-            $match: {
-              targetType: "Video",
-              likedBy: new mongoose.Types.ObjectId(id),
+    pipeline.push(
+      {
+        $lookup: {
+          from: "likes",
+          localField: "_id",
+          foreignField: "targetId",
+          pipeline: [
+            {
+              $match: {
+                targetType: "Video",
+                likedBy: new mongoose.Types.ObjectId(id),
+              },
             },
-          },
-          { $limit: 1 },
-        ],
-        as: "liked",
+            { $limit: 1 },
+          ],
+          as: "liked",
+        },
       },
-    },
-    { $addFields: { isLiked: { $gt: [{ $size: "$myLike" }, 0] } } },
-    { $project: { myLike: 0 } }
+      { $addFields: { isLiked: { $gt: [{ $size: "$liked" }, 0] } } },
+      { $project: { myLike: 0 } },
     );
-  }else{
+  } else {
     pipeline.push({ $addFields: { isLiked: false } });
   }
 
@@ -404,7 +405,7 @@ export const getvideoById = asyncHandler(async function (req, res) {
       subscribers: 0,
     },
   });
-  
+
   const response = await Video.aggregate(pipeline);
 
   if (!response.length) {
