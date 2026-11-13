@@ -391,7 +391,7 @@ export const getvideoById = asyncHandler(async function (req, res) {
 
   pipeline.push({
     $project: {
-      subCount: 0,
+      subscribers: 0,
     },
   });
 
