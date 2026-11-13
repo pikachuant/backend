@@ -346,7 +346,10 @@ export const getvideoById = asyncHandler(async function (req, res) {
           {
             $match: {
               $expr: {
-                $eq: ["$channel", "$$ownerId"],
+                $and: [
+                  { $eq: ["$channel", "$$ownerId"] },
+                  { $eq: ["$subscriber", id] },
+                ],
               },
             },
           },
