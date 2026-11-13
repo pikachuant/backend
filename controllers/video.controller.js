@@ -339,7 +339,8 @@ export const getvideoById = asyncHandler(async function (req, res) {
     {
       $lookup: {
         from: "subscriptions",
-        let: { ownerId: "$owner._id" },
+        localField: "owner._id",
+        foreignField: "channel",
         pipeline: [{ $project: { _id: 0, subscriber: 1 } }],
         as: "subscribers",
       },
@@ -347,7 +348,7 @@ export const getvideoById = asyncHandler(async function (req, res) {
     {
       $addFields: {
         subscriberCount: {
-          $size:"$subscribers"
+          $size: "$subscribers",
         },
       },
     },
