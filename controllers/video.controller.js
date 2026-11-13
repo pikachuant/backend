@@ -339,50 +339,15 @@ export const getvideoById = asyncHandler(async function (req, res) {
     {
       $lookup: {
         from: "subscriptions",
-        let: {
-          ownerId: "$owner._id",
-        },
-        pipeline: [
-          {
-            $match: {
-              $expr: {
-                $eq: ["$channel", "$$ownerId"],
-              },
-            },
-          },
-          {
-            $facet: {
-              total: [{ $count: "count" }],
-              userSubscription: id
-                ? [
-                    {
-                      $match: {
-                        subscriber: new mongoose.Types.ObjectId(id),
-                      },
-                    },
-                    { $limit: 1 },
-                  ]
-                : [{ $limit: 0 }],
-            },
-          },
-        ],
+        let: { ownerId: "$owner._id" },
+        pipeline: [{ $project: { _id: 0, subscriber: 1 } }],
         as: "subscribers",
       },
     },
     {
       $addFields: {
         subscriberCount: {
-          $ifNull:[
-            { $arrayElemAt: ["$subscribers.total.count", 0] },
-            0
-          ]
-        },
-      },
-    },
-    {
-      $addFields: {
-        isSubscribed: {
-          $gt: [{ $size: "$subscribers.userSubscription" }, 0],
+          $size:"$subscribers"
         },
       },
     },
@@ -390,6 +355,13 @@ export const getvideoById = asyncHandler(async function (req, res) {
 
   if (id) {
     pipeline.push(
+      {
+        $addFields: {
+          isSubscribed: {
+            $in: [new mongoose.Types.ObjectId(id), "$subscribers.subscriber"],
+          },
+        },
+      },
       {
         $lookup: {
           from: "likes",
@@ -411,12 +383,15 @@ export const getvideoById = asyncHandler(async function (req, res) {
       { $project: { liked: 0 } },
     );
   } else {
-    pipeline.push({ $addFields: { isLiked: false } });
+    pipeline.push(
+      { $addFields: { isLiked: false } },
+      { $addFields: { isSubscribed: false } },
+    );
   }
 
   pipeline.push({
     $project: {
-      subscribers: 0,
+      subCount: 0,
     },
   });
 
