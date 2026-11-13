@@ -394,7 +394,7 @@ export const getvideoById = asyncHandler(async function (req, res) {
         },
       },
       { $addFields: { isLiked: { $gt: [{ $size: "$liked" }, 0] } } },
-      { $project: { myLike: 0 } },
+      { $project: { liked: 0 } },
     );
   } else {
     pipeline.push({ $addFields: { isLiked: false } });
