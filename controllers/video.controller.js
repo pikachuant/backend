@@ -346,15 +346,27 @@ export const getvideoById = asyncHandler(async function (req, res) {
           {
             $match: {
               $expr: {
-                $and: [
-                  { $eq: ["$channel", "$$ownerId"] },
-                  { $eq: ["$subscriber", id] },
-                ],
+                $eq: ["$channel", "$$ownerId"],
               },
             },
           },
           {
-            $count: "total",
+            $facet:{
+              total:[
+                { $count: "count" }
+              ],
+              userSubscription:id?[
+                {
+                  $match:{
+                    subscriber: new mongoose.Types.ObjectId(id)
+                  }
+                },
+                { $limit: 1 }
+              ]:
+              [
+                { $limit: 0 }
+              ]
+            }
           },
         ],
         as: "subscribers",
@@ -367,17 +379,16 @@ export const getvideoById = asyncHandler(async function (req, res) {
         },
       },
     },
+    {
+      $addFields: {
+        isSubscribed: {
+          $gt: [{ $size: "$subscribers.userSubscription" }, 0],
+        },
+      },
+    },
   ];
 
   if (id) {
-    pipeline.push({
-      $addFields: {
-        isSubscribed: {
-          $in: [new mongoose.Types.ObjectId(id), "$subscribers.subscriber"],
-        },
-      },
-    });
-
     pipeline.push(
       {
         $lookup: {
