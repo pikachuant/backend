@@ -6,7 +6,7 @@ import { addViews, allUserVideosDetails, deleteVideo, editVideo, findVideoByName
 import { doLike, getLikeForComment, getLikeForTweet, getLikeForVideo, unLike } from "../controllers/like.controller.js";
 import {optionalVerfiyJwt} from "../middlewares/optional.middleware.js"
 import {deleteComment, doComment, findCommentForReplies, findCommentForTweet, findCommentForVideo, findCommentReplyForTweet, findCommentReplyForVideo, updateComment} from "../controllers/comment.controller.js"
-import {createTweet, deleteTweet, editTweet, fetchAllTweets} from "../controllers/tweet.controller.js"
+import {createTweet, deleteTweet, editTweet, fetchAllTweets, getTweetById} from "../controllers/tweet.controller.js"
 import {addnewItemtoPlayList, createPlayList, findPlayList, removeItemFromPlaylist, removePlaylist} from "../controllers/playlist.controller.js"
 
 
@@ -256,6 +256,11 @@ const router=Router()
   router.route("/user/tweet/all-tweet").get(
     optionalVerfiyJwt,
     fetchAllTweets
+  )
+
+  router.route("/tweet/:tweetId").get(
+    optionalVerfiyJwt,
+    getTweetById
   )
 
 
