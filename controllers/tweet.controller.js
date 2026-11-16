@@ -165,8 +165,8 @@ export const getTweetById = asyncHandler(async function (req, res) {
             },
           },
         ],
-      },
-      as: "owner",
+        as: "owner",
+      }
     },
     {
       $unwind: "$owner",
