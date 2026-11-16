@@ -213,6 +213,7 @@ export const getTweetById = asyncHandler(async function (req, res) {
       {
         $project: {
           myLike: 0,
+          __v: 0
         },
       },
     );
