@@ -171,6 +171,11 @@ export const getTweetById = asyncHandler(async function (req, res) {
     {
       $unwind: "$owner",
     },
+    {
+      $project:{
+        __v: 0
+      }
+    }
   ];
 
   if (id) {
@@ -212,8 +217,7 @@ export const getTweetById = asyncHandler(async function (req, res) {
       },
       {
         $project: {
-          myLike: 0,
-          __v: 0
+          myLike: 0
         },
       },
     );
