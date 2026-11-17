@@ -1,4 +1,5 @@
 import mongoose, { Schema } from "mongoose";
+import { User } from "../models/user.model.js";
 
 const tweetSchema = new Schema(
   {
@@ -8,7 +9,7 @@ const tweetSchema = new Schema(
     },
     tweetBy: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "user",
+      ref: "User",
     },
     totalLikes: {
       type: Number,
