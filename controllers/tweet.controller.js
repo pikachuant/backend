@@ -107,7 +107,7 @@ export const fetchAllTweets = asyncHandler(async function (req, res) {
     query._id = { $lt: new mongoose.Types.ObjectId(cursor) };
   }
 
-  const allTweets = await Tweet.find(query).sort({ _id: -1 }).limit(11).lean();
+  const allTweets = await Tweet.find(query).sort({ _id: -1 }).limit(11).populate("user", "name username avatar").lean();
 
   // if(!allTweets){
   //     throw new ApiError(400,"Some Issue arises during tweet fetch")
