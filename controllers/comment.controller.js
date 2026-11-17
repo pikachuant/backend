@@ -84,7 +84,7 @@ export const doComment = asyncHandler(async function (req, res) {
   } catch (error) {
     console.error("Like transaction failed:", error);
 
-    throw new ApiError(500, "Something went wrong while processing your like");
+    throw new ApiError(500, "Something went wrong while processing your Comment");
   } finally {
     await session.endSession();
   }

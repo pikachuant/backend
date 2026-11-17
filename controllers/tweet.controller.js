@@ -118,7 +118,7 @@ export const fetchAllTweets = asyncHandler(async function (req, res) {
 
   const Editable = tweets.map((tweet) => ({
     ...tweet,
-    isEditable: userId && tweet.tweetBy.toString() == userId,
+    isEditable: !!userId && tweet.tweetBy._id == userId,
   }));
 
   const nextCursor =
